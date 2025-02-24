@@ -503,7 +503,7 @@ GameObject:
   - component: {fileID: 3176381565251486545}
   - component: {fileID: 331558772}
   - component: {fileID: 331558771}
-  - component: {fileID: 331558770}
+  - component: {fileID: 7701615574743732692}
   m_Layer: 0
   m_Name: MeleeEnemy
   m_TagString: Enemy
@@ -578,7 +578,7 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 1.3051262, y: 2.8803933, z: 0.8050957}
   m_Center: {x: -0.003900528, y: 1.4208845, z: 0.008274078}
---- !u!114 &331558770
+--- !u!114 &7701615574743732692
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -587,7 +587,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 3176381565244240083}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1c7b1fd2efe1048298f9dc53f4ffae30, type: 3}
+  m_Script: {fileID: 11500000, guid: bdadbced6a45042ef8fbde64b516257f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &3176381565244240097

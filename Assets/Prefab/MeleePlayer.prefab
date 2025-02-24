@@ -44,7 +44,7 @@ GameObject:
   - component: {fileID: 3085294303378000377}
   - component: {fileID: 3085294303378000375}
   - component: {fileID: 3085294303378000374}
-  - component: {fileID: 3085294303378000376}
+  - component: {fileID: 8800527406446379932}
   m_Layer: 0
   m_Name: MeleePlayer
   m_TagString: Player
@@ -4883,7 +4883,7 @@ ParticleSystemRenderer:
   m_MeshWeighting2: 1
   m_MeshWeighting3: 1
   m_MaskInteraction: 0
---- !u!114 &3085294303378000376
+--- !u!114 &8800527406446379932
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -4892,7 +4892,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 3085294303378000370}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dc476e02236bd4499a0a47cff0f864d6, type: 3}
+  m_Script: {fileID: 11500000, guid: b03faa95b7f1047a3a1df6d00aecae24, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   playerType: 0

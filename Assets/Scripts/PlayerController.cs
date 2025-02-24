@@ -9,7 +9,7 @@ using UnityEngine;
 
 //original scale: Vector3(10.9097452,0.0169142466,11.5897226)
 
-public class CubeMovement : MonoBehaviour
+public class PlayerController : MonoBehaviour
 {
     private enum PlayerType{MELEE,SMALL_RANGED}
     private float playerSpeed;
@@ -26,7 +26,7 @@ public class CubeMovement : MonoBehaviour
     private Animator playerAnim;
     private Dictionary<int,GameObject> enemyInfo;
     private GameObject enemyToAttack;
-    private Enemy enemyToAttackScript;
+    private EnemyController enemyToAttackScript;
     private Vector3 mousePosition;
     private Vector3 positionToMoveTo;
     private Vector3 lastGoodMousePos;
@@ -140,7 +140,7 @@ public class CubeMovement : MonoBehaviour
                 //need to get close
             } else if (enemyInfo.Count > 0){
                 enemyToAttack = GetClosestEnemy();
-                enemyToAttackScript = enemyToAttack.GetComponent<Enemy>();
+                enemyToAttackScript = enemyToAttack.GetComponent<EnemyController>();
                 enemyToAttackID = enemyToAttackScript.GetEnemyID();
                 isLockedOntoEnemy = true;
                 // transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(enemyToAttack.transform.position - transform.position), 850 * Time.deltaTime);

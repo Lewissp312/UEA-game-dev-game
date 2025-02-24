@@ -5,11 +5,11 @@ using UnityEngine;
 
 public class AttackArea : MonoBehaviour
 {
-    private CubeMovement parentScript;
+    private PlayerController parentScript;
     // Start is called before the first frame update
     void Start()
     {
-        parentScript = transform.parent.gameObject.GetComponent<CubeMovement>();
+        parentScript = transform.parent.gameObject.GetComponent<PlayerController>();
     }
 
     // Update is called once per frame
@@ -31,7 +31,7 @@ public class AttackArea : MonoBehaviour
         print(other);
         if (other.gameObject.CompareTag("Enemy")){
             print("Enemy Collision");
-            int enemyNum = other.gameObject.GetComponent<Enemy>().GetEnemyID();
+            int enemyNum = other.gameObject.GetComponent<EnemyController>().GetEnemyID();
             parentScript.AddToEnemyList(enemyNum,other.gameObject);
             // Debug.Log($"Enemy number: {other.gameObject.GetComponent<Enemy>().GetEnemyNum()}");
         }
@@ -40,7 +40,7 @@ public class AttackArea : MonoBehaviour
 
     void OnTriggerExit(Collider other){
         if (other.gameObject.CompareTag("Enemy")){
-            int enemyNum = other.gameObject.GetComponent<Enemy>().GetEnemyID();
+            int enemyNum = other.gameObject.GetComponent<EnemyController>().GetEnemyID();
             parentScript.RemoveFromEnemyList(enemyNum);
             // Debug.Log($"Enemy number: {other.gameObject.GetComponent<Enemy>().GetEnemyNum()}");
         }

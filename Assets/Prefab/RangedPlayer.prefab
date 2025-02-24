@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: -3496952891026367039}
   - component: {fileID: -4948561531600499919}
   - component: {fileID: -3144804816583906302}
-  - component: {fileID: 7677149794467373844}
+  - component: {fileID: 7921307572688576979}
   m_Layer: 0
   m_Name: RangedPlayer
   m_TagString: Player
@@ -4852,7 +4852,7 @@ ParticleSystemRenderer:
   m_MeshWeighting2: 1
   m_MeshWeighting3: 1
   m_MaskInteraction: 0
---- !u!114 &7677149794467373844
+--- !u!114 &7921307572688576979
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -4861,7 +4861,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 100000}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dc476e02236bd4499a0a47cff0f864d6, type: 3}
+  m_Script: {fileID: 11500000, guid: b03faa95b7f1047a3a1df6d00aecae24, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   playerType: 1
