@@ -13,7 +13,6 @@ public class PlayerController : MonoBehaviour
 {
     private enum PlayerType{MELEE,SMALL_RANGED}
     private float playerSpeed;
-    private int attackCooldownTime;
     private int enemyToAttackID;
     private bool isOverPlayer;
     private bool isMovingToPosition;
@@ -30,10 +29,15 @@ public class PlayerController : MonoBehaviour
     private Vector3 mousePosition;
     private Vector3 positionToMoveTo;
     private Vector3 lastGoodMousePos;
+    private Vector3 laserPosition;
+    private Vector3 laserHeight;
+    private Vector3 enemyPositionForLaser;
+    private Quaternion laserRotation;
     private Color ringColor;
     private Color ringColorTrans;
     private Renderer ringRenderer;
     private ParticleSystem selectedEffect; 
+    [SerializeField] private float attackCooldownTime;
     [SerializeField] private PlayerType playerType;
     [SerializeField] private GameObject laser;
     // Start is called before the first frame update
@@ -41,25 +45,19 @@ public class PlayerController : MonoBehaviour
     {
         playerSpeed = 0.07f;
         enemyInfo = new();
+        //TODO: find better way to loop through children and grandchildren
         leftHandCollider = transform.GetChild(1).transform.GetChild(0).transform.GetChild(0).
         transform.GetChild(0).transform.GetChild(1).transform.GetChild(0).transform.GetChild(0).
         transform.GetChild(0).GetComponent<BoxCollider>();
         rightHandCollider = transform.GetChild(1).transform.GetChild(0).transform.GetChild(0).
         transform.GetChild(0).transform.GetChild(2).transform.GetChild(0).transform.GetChild(0).
         transform.GetChild(0).GetComponent<BoxCollider>();
-        //1,0,0,0,1,0,0,0
         playerAnim = GetComponent<Animator>();
         selectedEffect = GetComponent<ParticleSystem>();
         ringRenderer = transform.Find("PlayerAttackArea").gameObject.GetComponent<Renderer>();
         ringColor = new Color(0.96f,0.96f,0.51f,0.5f);
         ringColorTrans = new Color(0.96f,0.96f,0.51f,0f);
         canAttack = true;
-        //This would not be needed in a full version, as this would be set when instantiated by a gameManager (possibly)
-        if (playerType == PlayerType.MELEE){
-            attackCooldownTime = 1;
-        } else{
-            attackCooldownTime = 2;
-        }
     }
 
     // Update is called once per frame
@@ -96,8 +94,12 @@ public class PlayerController : MonoBehaviour
         if (!isMovingToPosition){ 
             if (isLockedOntoEnemy){
                 if (isMovingToEnemy){
-                    transform.SetPositionAndRotation(Vector3.MoveTowards(transform.position,enemyToAttack.transform.position,playerSpeed), 
-                    Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(enemyToAttack.transform.position - transform.position), 850 * Time.deltaTime));
+                    transform.SetPositionAndRotation(
+                        Vector3.MoveTowards(transform.position,enemyToAttack.transform.position,playerSpeed), 
+                        Quaternion.RotateTowards(transform.rotation, 
+                            Quaternion.LookRotation(enemyToAttack.transform.position - transform.position), 850 * Time.deltaTime
+                        )
+                    );
                     // print(Vector3.Distance(transform.position,enemyToAttack.transform.position));
                     if (Vector3.Distance(transform.position,enemyToAttack.transform.position) <= 1.4f){
                         isMovingToEnemy = false;
@@ -106,44 +108,69 @@ public class PlayerController : MonoBehaviour
                     }
                 }
                 else if(canAttack){
-                    //could use a switch here
-                    if (playerType == PlayerType.SMALL_RANGED){
-                        //ideally would control different aspects of a player character with variables, such as "canFire", 
-                        // "canMoveToEnemy", "timeToReload" etc. to help checks like this
-                        transform.LookAt(enemyToAttack.transform.position);
-                        //start firing animation
-                        GameObject newLaser = Instantiate(laser,transform.position,transform.rotation);
-                        newLaser.GetComponent<PlayerLaser>().SetFireDirection(enemyToAttack.transform.position);
-                        StartCoroutine(AttackCooldown());
-                        // fireDirection = speed * Time.deltaTime * -transform.forward;
-                        //change to object pooling to be more effecient
-                    } else if(playerType == PlayerType.MELEE){
-                        //Could perhaps activate colliders here for hands, could make them bigger to hit more enemies
-                        //Would need to make sure that all colliders are deactivated if the player chatacter is moved away too
-                        if (enemyToAttackScript.GetIsDead() || enemyToAttack.IsDestroyed()){
-                            canAttack = false;
-                            isLockedOntoEnemy = false;
-                            enemyInfo.Remove(enemyToAttackID);
-                        } else{
-                            playerAnim.SetTrigger("Punch_trig");
-                            leftHandCollider.enabled = true;
-                            rightHandCollider.enabled = true;
-                            StartCoroutine(AttackCooldown());
+                    if (enemyToAttackScript.GetIsDead() || enemyToAttack.IsDestroyed()){
+                        canAttack = false;
+                        isLockedOntoEnemy = false;
+                        enemyInfo.Remove(enemyToAttackID);
+                    } else{
+                        switch(playerType){
+                            case PlayerType.MELEE:
+                                //Checks if the enemy is either doing their death animation or the enemy object is destroyed
+                                playerAnim.SetTrigger("Punch_trig");
+                                leftHandCollider.enabled = true;
+                                rightHandCollider.enabled = true;
+                                StartCoroutine(AttackCooldown());
+                                break;
+                            case PlayerType.SMALL_RANGED:
+                                transform.LookAt(enemyToAttack.transform.position);
+                                //start firing animation
+                                //TODO: change this to object pooling to be more effecient
+                                laserHeight = new Vector3(transform.position.x,transform.position.y + 2,transform.position.z);
+                                laserPosition = (transform.forward * 2) + laserHeight;
+                                laserRotation = transform.rotation * Quaternion.Euler(90,0,0);
+                                enemyPositionForLaser = new Vector3(enemyToAttack.transform.position.x,
+                                    enemyToAttack.transform.position.y + 2, 
+                                    enemyToAttack.transform.position.z
+                                );
+                                GameObject newLaser = Instantiate(laser,laserPosition,laserRotation);
+                                newLaser.GetComponent<PlayerLaser>().SetEnemyToAttack(enemyPositionForLaser);
+                                StartCoroutine(AttackCooldown());
+                                break;
                         }
                     }
+                    //could use a switch here
+                    // if (playerType == PlayerType.SMALL_RANGED){
+                    //     transform.LookAt(enemyToAttack.transform.position);
+                    //     //start firing animation
+                    //     //TODO: change this to object pooling to be more effecient
+                    //     laserHeight = new Vector3(transform.position.x,transform.position.y + 2,transform.position.z);
+                    //     laserPosition = (transform.forward * 2) + laserHeight;
+                    //     laserRotation = transform.rotation * Quaternion.Euler(90,0,0);
+                    //     GameObject newLaser = Instantiate(laser,laserPosition,laserRotation);
+                    //     enemyPositionForLaser = new Vector3(enemyToAttack.transform.position.x,
+                    //     enemyToAttack.transform.position.y + 2, 
+                    //     enemyToAttack.transform.position.z);
+                    //     newLaser.GetComponent<PlayerLaser>().SetEnemyToAttack(enemyPositionForLaser);
+                    //     StartCoroutine(AttackCooldown());
+                    // } else if(playerType == PlayerType.MELEE){
+                    //     //Checks if the enemy is either doing their death animation or the enemy object is destroyed
+                    //     if (enemyToAttackScript.GetIsDead() || enemyToAttack.IsDestroyed()){
+                    //         canAttack = false;
+                    //         isLockedOntoEnemy = false;
+                    //         enemyInfo.Remove(enemyToAttackID);
+                    //     } else{
+                    //         playerAnim.SetTrigger("Punch_trig");
+                    //         leftHandCollider.enabled = true;
+                    //         rightHandCollider.enabled = true;
+                    //         StartCoroutine(AttackCooldown());
+                    //     }
+                    // }
                 }
-                //if you are within range of the enemy now, attack them
-                //When the enemy dies, isAttackingEnemy must be set to false
-                //have a variable here that is set by collision with the player. If they collide, then don't move any further forward
-                //When this happens, an attack is executed, and moving forward is prohibited until the attack is done (could be a combo maybe)
-                //This would have to be different for ranged weapons. In this case, the check is not needed, as they can fire wherever and don't
-                //need to get close
             } else if (enemyInfo.Count > 0){
                 enemyToAttack = GetClosestEnemy();
                 enemyToAttackScript = enemyToAttack.GetComponent<EnemyController>();
                 enemyToAttackID = enemyToAttackScript.GetEnemyID();
                 isLockedOntoEnemy = true;
-                // transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(enemyToAttack.transform.position - transform.position), 850 * Time.deltaTime);
                 switch(playerType){
                     case PlayerType.MELEE:
                         isMovingToEnemy = true;
@@ -288,15 +315,15 @@ public class PlayerController : MonoBehaviour
         // playerAnim.SetTrigger("Punch_trig");
         //deactivate hand colliders here
         canAttack = false;
+        yield return new WaitForSeconds(attackCooldownTime);
         switch(playerType){
             case PlayerType.MELEE:
-                yield return new WaitForSeconds(0.3f);
                 leftHandCollider.enabled = false;
                 rightHandCollider.enabled = false;
                 playerAnim.ResetTrigger("Punch_trig");
                 break;
             case PlayerType.SMALL_RANGED:
-                yield return new WaitForSeconds(0.3f);
+                //stop animation
                 break;
         }
         canAttack = true;

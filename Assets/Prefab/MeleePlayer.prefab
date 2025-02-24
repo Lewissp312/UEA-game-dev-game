@@ -187,7 +187,7 @@ ParticleSystem:
     startLifetime:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 5
+      scalar: 2
       minScalar: 5
       maxCurve:
         serializedVersion: 2
@@ -4895,6 +4895,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b03faa95b7f1047a3a1df6d00aecae24, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  attackCooldownTime: 0.3
   playerType: 0
   laser: {fileID: 3101699443917431361, guid: 63a0f4de392ae4d689a94d16c8603f91, type: 3}
 --- !u!1 &3085294303382305128

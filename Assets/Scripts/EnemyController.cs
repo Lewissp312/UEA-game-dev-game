@@ -35,14 +35,18 @@ public class EnemyController : MonoBehaviour
     // }
 
     public void OnTriggerEnter(Collider other){
-        if (other.gameObject.CompareTag("Fist")){
-            print($"Collided with fist, ouch");
+        if (other.gameObject.CompareTag("Fist") || other.gameObject.CompareTag("Laser")){
+            // print($"Collided with fist, ouch");
             timesHit++;
             if (timesHit%3 == 0){
                 print("Knocked back");
+                //TODO: insert effect
                 enemyAnim.SetTrigger("Death_trig");
                 isDead = true;
                 StartCoroutine(WaitForDeath());
+            }
+            if (other.gameObject.CompareTag("Laser")){
+                Destroy(other.gameObject);
             }
         }
     }

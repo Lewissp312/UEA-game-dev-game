@@ -5,11 +5,14 @@ using UnityEngine;
 
 public class PlayerLaser : MonoBehaviour
 {
+    private int speed;
+    private Vector3 enemyToAttackPosition;
     private Vector3 fireDirection;
     // Start is called before the first frame update
     void Start()
     {
-        
+        speed = 15;
+        fireDirection = (enemyToAttackPosition - transform.position).normalized * speed;
     }
 
     // Update is called once per frame
@@ -18,7 +21,7 @@ public class PlayerLaser : MonoBehaviour
         transform.position += fireDirection * Time.deltaTime;
     }
 
-    public void SetFireDirection(Vector3 fireDirection){
-        this.fireDirection = fireDirection;
+    public void SetEnemyToAttack(Vector3 enemyToAttackPosition){
+        this.enemyToAttackPosition = enemyToAttackPosition;
     }
 }
