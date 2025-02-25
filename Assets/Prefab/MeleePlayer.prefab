@@ -5186,7 +5186,7 @@ SkinnedMeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 632309c76598ef2439d70d47bb507f87, type: 2}
+  - {fileID: 2100000, guid: cf617d0f386cd4ebf846cd770ab9854f, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -5414,8 +5414,8 @@ BoxCollider:
   m_IsTrigger: 0
   m_Enabled: 0
   serializedVersion: 2
-  m_Size: {x: 0.21920007, y: 0.27021348, z: 0.3166597}
-  m_Center: {x: -0.12024686, y: 0.02232534, z: -0.0009870532}
+  m_Size: {x: 0.24184793, y: 0.198966, z: 0.25594503}
+  m_Center: {x: -0.14392278, y: -0.005407956, z: -0.007470133}
 --- !u!1 &3085294304055603546
 GameObject:
   m_ObjectHideFlags: 0
@@ -5587,8 +5587,8 @@ BoxCollider:
   m_IsTrigger: 0
   m_Enabled: 0
   serializedVersion: 2
-  m_Size: {x: 0.24470133, y: 0.24752337, z: 0.26202577}
-  m_Center: {x: 0.13729665, y: 0.011472672, z: -0.0010156629}
+  m_Size: {x: 0.28741068, y: 0.24621779, z: 0.25646204}
+  m_Center: {x: 0.10521505, y: 0.010518752, z: -0.006546019}
 --- !u!1 &3085294304876989138
 GameObject:
   m_ObjectHideFlags: 0

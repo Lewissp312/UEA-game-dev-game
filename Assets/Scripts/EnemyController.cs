@@ -8,11 +8,13 @@ public class EnemyController : MonoBehaviour
     private int enemyID;
     private int timesHit;
     private bool isDead;
+    private bool canTakeDamageFromMelee;
     private GameManager gameManager;
     private Animator enemyAnim;
     // Start is called before the first frame update
     void Start()
     {
+        canTakeDamageFromMelee = true;
         timesHit = 0;
         enemyAnim = GetComponent<Animator>();
         gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
@@ -35,7 +37,7 @@ public class EnemyController : MonoBehaviour
     // }
 
     public void OnTriggerEnter(Collider other){
-        if (other.gameObject.CompareTag("Fist") || other.gameObject.CompareTag("Laser")){
+        if ((other.gameObject.CompareTag("Fist") && canTakeDamageFromMelee) || other.gameObject.CompareTag("Laser")){
             // print($"Collided with fist, ouch");
             timesHit++;
             if (timesHit%3 == 0){
@@ -44,6 +46,10 @@ public class EnemyController : MonoBehaviour
                 enemyAnim.SetTrigger("Death_trig");
                 isDead = true;
                 StartCoroutine(WaitForDeath());
+            }
+            if (other.gameObject.CompareTag("Fist")){
+                canTakeDamageFromMelee = false;
+                StartCoroutine(WaitToTakeMeleeDamage());
             }
             if (other.gameObject.CompareTag("Laser")){
                 Destroy(other.gameObject);
@@ -55,9 +61,16 @@ public class EnemyController : MonoBehaviour
         return isDead;
     }
 
+    IEnumerator WaitToTakeMeleeDamage(){
+        yield return new WaitForSeconds(0.5f);
+        canTakeDamageFromMelee = true;
+    }
+
     IEnumerator WaitForDeath(){
         yield return new WaitForSeconds(1);
         Destroy(gameObject);
     }
 
 }
+
+//Turned player characters green and enemy characters red. Fixed an issue in which player characters would attempt to look for enemies that had been killed, causing gameobject errors. Fixed issues with enemies registering multiple melee hits at once when only one was used. Slightly changed the transparency values of the visible ring colour to make it slightly more transparent. Increased the size of the ring for ranged player characters 

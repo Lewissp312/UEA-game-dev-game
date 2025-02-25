@@ -55,7 +55,7 @@ public class PlayerController : MonoBehaviour
         playerAnim = GetComponent<Animator>();
         selectedEffect = GetComponent<ParticleSystem>();
         ringRenderer = transform.Find("PlayerAttackArea").gameObject.GetComponent<Renderer>();
-        ringColor = new Color(0.96f,0.96f,0.51f,0.5f);
+        ringColor = new Color(0.96f,0.96f,0.51f,0.3f);
         ringColorTrans = new Color(0.96f,0.96f,0.51f,0f);
         canAttack = true;
     }
@@ -83,6 +83,7 @@ public class PlayerController : MonoBehaviour
                     isMovingToEnemy = false;
                     canAttack = false;
                     playerAnim.ResetTrigger("Punch_trig");
+                    playerAnim.ResetTrigger("Shoot_small_trig");
                     playerAnim.SetTrigger("Run_trig");
                     isPlayerClicked = false;
                     selectedEffect.Clear();
@@ -134,6 +135,7 @@ public class PlayerController : MonoBehaviour
                                 );
                                 GameObject newLaser = Instantiate(laser,laserPosition,laserRotation);
                                 newLaser.GetComponent<PlayerLaser>().SetEnemyToAttack(enemyPositionForLaser);
+                                playerAnim.SetTrigger("Shoot_small_trig");
                                 StartCoroutine(AttackCooldown());
                                 break;
                         }
@@ -168,21 +170,23 @@ public class PlayerController : MonoBehaviour
                 }
             } else if (enemyInfo.Count > 0){
                 enemyToAttack = GetClosestEnemy();
-                enemyToAttackScript = enemyToAttack.GetComponent<EnemyController>();
-                enemyToAttackID = enemyToAttackScript.GetEnemyID();
-                isLockedOntoEnemy = true;
-                switch(playerType){
-                    case PlayerType.MELEE:
+                if (enemyToAttack != gameObject){
+                    enemyToAttackScript = enemyToAttack.GetComponent<EnemyController>();
+                    enemyToAttackID = enemyToAttackScript.GetEnemyID();
+                    isLockedOntoEnemy = true;
+                    switch(playerType){
+                        case PlayerType.MELEE:
+                            isMovingToEnemy = true;
+                            playerAnim.SetTrigger("Run_trig");
+                            break;
+                        case PlayerType.SMALL_RANGED:
+                            canAttack = true;
+                            break;
+                    }
+                    if (playerType == PlayerType.MELEE){
                         isMovingToEnemy = true;
                         playerAnim.SetTrigger("Run_trig");
-                        break;
-                    case PlayerType.SMALL_RANGED:
-                        canAttack = true;
-                        break;
-                }
-                if (playerType == PlayerType.MELEE){
-                    isMovingToEnemy = true;
-                    playerAnim.SetTrigger("Run_trig");
+                    }
                 }
             }   
         }
@@ -234,13 +238,28 @@ public class PlayerController : MonoBehaviour
     private GameObject GetClosestEnemy(){
         float lowestDistance = 100;
         float tempDistance;
+        int[] enemiesToRemove = new int[20];
+        int enemiesToRemoveIndex = 0;
         GameObject lowestDistanceEnemy = gameObject;
-        foreach(KeyValuePair<int, GameObject> enemies in enemyInfo){
-            tempDistance = Vector3.Distance(transform.position,enemies.Value.transform.position);
-            if (tempDistance < lowestDistance){
-                lowestDistance = tempDistance;
-                lowestDistanceEnemy = enemies.Value;
+        foreach(KeyValuePair<int, GameObject> enemy in enemyInfo){
+            if (enemy.Value.IsDestroyed()){
+                enemiesToRemove[enemiesToRemoveIndex] = enemy.Key;
+                enemiesToRemoveIndex++;
+            } else{
+                tempDistance = Vector3.Distance(transform.position,enemy.Value.transform.position);
+                if (tempDistance < lowestDistance){
+                    lowestDistance = tempDistance;
+                    lowestDistanceEnemy = enemy.Value;
+                }
             }
+        }
+        if (enemiesToRemoveIndex > 0){
+            foreach (int enemyID in enemiesToRemove){
+                enemyInfo.Remove(enemyID);
+            }
+        }
+        if (lowestDistance == 100){
+            return gameObject;
         }
         return lowestDistanceEnemy;
     }
@@ -323,6 +342,7 @@ public class PlayerController : MonoBehaviour
                 playerAnim.ResetTrigger("Punch_trig");
                 break;
             case PlayerType.SMALL_RANGED:
+                playerAnim.ResetTrigger("Shoot_small_trig");
                 //stop animation
                 break;
         }

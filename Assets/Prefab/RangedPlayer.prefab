@@ -5261,7 +5261,7 @@ GameObject:
   - component: {fileID: 472796}
   - component: {fileID: 13717610}
   m_Layer: 0
-  m_Name: CH_BusinessMan
+  m_Name: RangedPlayer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5302,7 +5302,7 @@ SkinnedMeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 497bbddce010fea4da3dcb5c5210ad16, type: 2}
+  - {fileID: 2100000, guid: cf617d0f386cd4ebf846cd770ab9854f, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -5706,7 +5706,7 @@ Transform:
   m_GameObject: {fileID: 8241493827590764555}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -0.025594711, y: 0.14, z: 0.060697556}
-  m_LocalScale: {x: 31.152786, y: 0.048298646, z: 33.094463}
+  m_LocalScale: {x: 50.427017, y: 0.07818102, z: 53.570007}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 400000}
