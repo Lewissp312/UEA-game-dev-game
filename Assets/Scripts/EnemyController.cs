@@ -72,5 +72,3 @@ public class EnemyController : MonoBehaviour
     }
 
 }
-
-//Turned player characters green and enemy characters red. Fixed an issue in which player characters would attempt to look for enemies that had been killed, causing gameobject errors. Fixed issues with enemies registering multiple melee hits at once when only one was used. Slightly changed the transparency values of the visible ring colour to make it slightly more transparent. Increased the size of the ring for ranged player characters 
