@@ -9,6 +9,7 @@ TagManager:
   - ScoreKeeper
   - Fist
   - Laser
+  - File
   layers:
   - Default
   - TransparentFX

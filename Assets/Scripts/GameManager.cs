@@ -6,9 +6,11 @@ using UnityEngine;
 public class GameManager : MonoBehaviour
 {
     private int enemyID;
+    private GameObject[] filesToAttack;
     // Start is called before the first frame update
     void Start()
     {
+        filesToAttack = GameObject.FindGameObjectsWithTag("File");
         enemyID = 0;
     }
 
@@ -20,6 +22,10 @@ public class GameManager : MonoBehaviour
 
     public int GetEnemyID(){
         return enemyID;
+    }
+
+    public GameObject[] GetFilesToAttack(){
+        return GameObject.FindGameObjectsWithTag("File");
     }
 
     public void IncreaseEnemyNum(){

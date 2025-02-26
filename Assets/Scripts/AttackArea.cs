@@ -28,23 +28,20 @@ public class AttackArea : MonoBehaviour
     }
 
     void OnTriggerEnter(Collider other){
-        print(other);
         if (other.gameObject.CompareTag("Enemy")){
-            print("Enemy Collision");
             int enemyNum = other.gameObject.GetComponent<EnemyController>().GetEnemyID();
             parentScript.AddToEnemyList(enemyNum,other.gameObject);
-            // Debug.Log($"Enemy number: {other.gameObject.GetComponent<Enemy>().GetEnemyNum()}");
         }
-        //Could have some sort of dictionary to store the other collisions, passing that information from here
     }
 
     void OnTriggerExit(Collider other){
         if (other.gameObject.CompareTag("Enemy")){
-            int enemyNum = other.gameObject.GetComponent<EnemyController>().GetEnemyID();
+            EnemyController enemyScript = other.gameObject.GetComponent<EnemyController>();
+            int enemyNum = enemyScript.GetEnemyID();
             parentScript.RemoveFromEnemyList(enemyNum);
-            // Debug.Log($"Enemy number: {other.gameObject.GetComponent<Enemy>().GetEnemyNum()}");
+            if (enemyScript.GetPlayerToAttack() == transform.parent.gameObject){
+                enemyScript.StopAttackingPlayer();
+            }
         }
-        //have code to remove the item from the dictionary here, this will call a method in player script 
-        // that uses some sort of ID to get rid of the entry
     }
 }

@@ -5383,7 +5383,7 @@ GameObject:
   - component: {fileID: 8447421905238206461}
   m_Layer: 0
   m_Name: Hand_Left_jnt
-  m_TagString: Fist
+  m_TagString: Melee
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -5411,7 +5411,7 @@ BoxCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3085294303983075240}
   m_Material: {fileID: 0}
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_Enabled: 0
   serializedVersion: 2
   m_Size: {x: 0.24184793, y: 0.198966, z: 0.25594503}
@@ -5556,7 +5556,7 @@ GameObject:
   - component: {fileID: 783364664223847826}
   m_Layer: 0
   m_Name: Hand_Right_jnt
-  m_TagString: Fist
+  m_TagString: Melee
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -5584,7 +5584,7 @@ BoxCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3085294304758714785}
   m_Material: {fileID: 0}
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_Enabled: 0
   serializedVersion: 2
   m_Size: {x: 0.28741068, y: 0.24621779, z: 0.25646204}

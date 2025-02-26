@@ -1,13 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
-
-// using Unity.VisualScripting;
-// using UnityEditor;
-// using UnityEditorInternal;
 using UnityEngine;
-
-//original scale: Vector3(10.9097452,0.0169142466,11.5897226)
 
 public class PlayerController : MonoBehaviour
 {
@@ -95,13 +89,7 @@ public class PlayerController : MonoBehaviour
         if (!isMovingToPosition){ 
             if (isLockedOntoEnemy){
                 if (isMovingToEnemy){
-                    transform.SetPositionAndRotation(
-                        Vector3.MoveTowards(transform.position,enemyToAttack.transform.position,playerSpeed), 
-                        Quaternion.RotateTowards(transform.rotation, 
-                            Quaternion.LookRotation(enemyToAttack.transform.position - transform.position), 850 * Time.deltaTime
-                        )
-                    );
-                    // print(Vector3.Distance(transform.position,enemyToAttack.transform.position));
+                    MoveToPosition(enemyToAttack.transform.position);
                     if (Vector3.Distance(transform.position,enemyToAttack.transform.position) <= 1.4f){
                         isMovingToEnemy = false;
                         playerAnim.ResetTrigger("Run_trig");
@@ -114,59 +102,8 @@ public class PlayerController : MonoBehaviour
                         isLockedOntoEnemy = false;
                         enemyInfo.Remove(enemyToAttackID);
                     } else{
-                        switch(playerType){
-                            case PlayerType.MELEE:
-                                //Checks if the enemy is either doing their death animation or the enemy object is destroyed
-                                playerAnim.SetTrigger("Punch_trig");
-                                leftHandCollider.enabled = true;
-                                rightHandCollider.enabled = true;
-                                StartCoroutine(AttackCooldown());
-                                break;
-                            case PlayerType.SMALL_RANGED:
-                                transform.LookAt(enemyToAttack.transform.position);
-                                //start firing animation
-                                //TODO: change this to object pooling to be more effecient
-                                laserHeight = new Vector3(transform.position.x,transform.position.y + 2,transform.position.z);
-                                laserPosition = (transform.forward * 2) + laserHeight;
-                                laserRotation = transform.rotation * Quaternion.Euler(90,0,0);
-                                enemyPositionForLaser = new Vector3(enemyToAttack.transform.position.x,
-                                    enemyToAttack.transform.position.y + 2, 
-                                    enemyToAttack.transform.position.z
-                                );
-                                GameObject newLaser = Instantiate(laser,laserPosition,laserRotation);
-                                newLaser.GetComponent<PlayerLaser>().SetEnemyToAttack(enemyPositionForLaser);
-                                playerAnim.SetTrigger("Shoot_small_trig");
-                                StartCoroutine(AttackCooldown());
-                                break;
-                        }
+                        AttackPlayer();
                     }
-                    //could use a switch here
-                    // if (playerType == PlayerType.SMALL_RANGED){
-                    //     transform.LookAt(enemyToAttack.transform.position);
-                    //     //start firing animation
-                    //     //TODO: change this to object pooling to be more effecient
-                    //     laserHeight = new Vector3(transform.position.x,transform.position.y + 2,transform.position.z);
-                    //     laserPosition = (transform.forward * 2) + laserHeight;
-                    //     laserRotation = transform.rotation * Quaternion.Euler(90,0,0);
-                    //     GameObject newLaser = Instantiate(laser,laserPosition,laserRotation);
-                    //     enemyPositionForLaser = new Vector3(enemyToAttack.transform.position.x,
-                    //     enemyToAttack.transform.position.y + 2, 
-                    //     enemyToAttack.transform.position.z);
-                    //     newLaser.GetComponent<PlayerLaser>().SetEnemyToAttack(enemyPositionForLaser);
-                    //     StartCoroutine(AttackCooldown());
-                    // } else if(playerType == PlayerType.MELEE){
-                    //     //Checks if the enemy is either doing their death animation or the enemy object is destroyed
-                    //     if (enemyToAttackScript.GetIsDead() || enemyToAttack.IsDestroyed()){
-                    //         canAttack = false;
-                    //         isLockedOntoEnemy = false;
-                    //         enemyInfo.Remove(enemyToAttackID);
-                    //     } else{
-                    //         playerAnim.SetTrigger("Punch_trig");
-                    //         leftHandCollider.enabled = true;
-                    //         rightHandCollider.enabled = true;
-                    //         StartCoroutine(AttackCooldown());
-                    //     }
-                    // }
                 }
             } else if (enemyInfo.Count > 0){
                 enemyToAttack = GetClosestEnemy();
@@ -190,10 +127,8 @@ public class PlayerController : MonoBehaviour
                 }
             }   
         }
-
         if (isMovingToPosition){
-            transform.SetPositionAndRotation(Vector3.MoveTowards(transform.position,positionToMoveTo,playerSpeed), 
-            Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(positionToMoveTo - transform.position), 850 * Time.deltaTime));
+            MoveToPosition(positionToMoveTo);
             if (transform.position == positionToMoveTo){
                 isMovingToPosition = false;
                 playerAnim.ResetTrigger("Run_trig");
@@ -211,28 +146,9 @@ public class PlayerController : MonoBehaviour
     }
 
     private void OnTriggerEnter(Collider other){
-        // if (other.gameObject.CompareTag("Enemy") && playerType == PlayerType.MELEE)
-        // {
-        //     if (other.gameObject == enemyToAttack){
-        //         isMovingToEnemy = false;
+    }
 
-
-        //         //Do the attack here
-        //         //only do the attack when you encounter the enemy but the attack should also affect other enemies
-        //         //enemy will probably have a bit of knockback so will need to move to them again
-        //         //Check if enemy has died after attack, enemy can perhaps set the isLockedOntoEnemy
-        //         //do the attack
-        //         //set isMovingToEnemy to be true again (will probably need to keep track of the duration of the animation)
-        //         //need to wait until the animation is done before moving the player
-        //     }
-        //     // if(Physics.Raycast(origin, forward, hitRange, out hit))
-        //     // {
-        //     //     if(hit.transform.gameObject.tag == "Enemy")
-        //     //     {
-        //     //         hit.transform.gameObject.SendMessage("TakeDamage", 30);
-        //     //     }
-        //     // }
-        // }
+    private void OnCollisionEnter(Collision other){
     }
 
     private GameObject GetClosestEnemy(){
@@ -264,22 +180,29 @@ public class PlayerController : MonoBehaviour
         return lowestDistanceEnemy;
     }
 
-    // private BoxCollider FindHandCollider(string hand){
-        
-    // }
-
     public void AddToEnemyList(int enemyID, GameObject enemy){
         enemyInfo.Add(enemyID,enemy);
-        // Debug.Log(enemyInfo[enemyID].transform.position);
     }
 
     public void RemoveFromEnemyList(int enemyID){
-        //Would call this when an enemy leaves a player's field, using OnTriggerExit. 
-        //However, this would need to be placed in gameManager, as the enemy could die while still inside the circle but
-        //not by the player's hand. They would still be in the player's list. When the enemy dies 
-        // the function is called from gameManager to go through all player's lists and remove that enemy.
-        //For now it's in here
         enemyInfo.Remove(enemyID);
+    }
+
+    private void MoveToPosition(Vector3 positionToMoveTo){
+        transform.SetPositionAndRotation(
+            Vector3.MoveTowards(
+                transform.position,
+                positionToMoveTo,
+                playerSpeed
+            ), 
+            Quaternion.RotateTowards(
+                transform.rotation, 
+                Quaternion.LookRotation(
+                    positionToMoveTo - transform.position
+                ), 
+                850 * Time.deltaTime
+            )
+        );
     }
 
 
@@ -316,16 +239,35 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private void AttackEnemy(){
-
-        //could possibly have parameters for hit range of attack and attack to be executed? 
-        //also might need to use this for group attacks like rockets 
-        // (but could maybe have enemies take damage if they get caught 
-        // in the explosion effect, with possible varying damage depending 
-        // on how far they are from the explosion)?
-        //Gunner enemies only attack one person so no need for this, 
-        // but would need to make sure that bullets collide with other 
-        // things (like walls and other enemies)
+    private void AttackPlayer(){
+        switch(playerType){
+            case PlayerType.MELEE:
+                //Checks if the enemy is either doing their death animation or the enemy object is destroyed
+                //TODO: have different combat animations here, could set incrementing int variable to determine what attack to use
+                playerAnim.SetTrigger("Punch_trig");
+                //TODO: enable/disable certain colliders depending on what melee attack is being used 
+                // (e.g right hand for normal punch, right leg for kick)
+                // leftHandCollider.enabled = true;
+                rightHandCollider.enabled = true;
+                StartCoroutine(AttackCooldown());
+                break;
+            case PlayerType.SMALL_RANGED:
+                transform.LookAt(enemyToAttack.transform.position);
+                //start firing animation
+                //TODO: change this to object pooling to be more effecient
+                laserHeight = new Vector3(transform.position.x,transform.position.y + 2,transform.position.z);
+                laserPosition = (transform.forward * 2) + laserHeight;
+                laserRotation = transform.rotation * Quaternion.Euler(90,0,0);
+                enemyPositionForLaser = new Vector3(enemyToAttack.transform.position.x,
+                    enemyToAttack.transform.position.y + 2, 
+                    enemyToAttack.transform.position.z
+                );
+                GameObject newLaser = Instantiate(laser,laserPosition,laserRotation);
+                newLaser.GetComponent<PlayerLaser>().SetEnemyToAttack(enemyPositionForLaser);
+                playerAnim.SetTrigger("Shoot_small_trig");
+                StartCoroutine(AttackCooldown());
+                break;
+        }
 
     }
 
@@ -337,7 +279,7 @@ public class PlayerController : MonoBehaviour
         yield return new WaitForSeconds(attackCooldownTime);
         switch(playerType){
             case PlayerType.MELEE:
-                leftHandCollider.enabled = false;
+                // leftHandCollider.enabled = false;
                 rightHandCollider.enabled = false;
                 playerAnim.ResetTrigger("Punch_trig");
                 break;
@@ -349,13 +291,4 @@ public class PlayerController : MonoBehaviour
         canAttack = true;
     }
 }
-
-
-//An attack's conditions have been met for launch. 
-// If the attack is a ranged attack, such as a basic gun or rocket, the player does not need
-//to move closer to the enemy, as they can fire from where they are. If it is a melee attack however, the player
-//must move to the enemy to hit them. Melee players will have some sort of object or just their fists that they use to attack the enemy.
-//Objects (such as swords and fists) will have colliders. If an enemy comes into contact with this collider, they will take damage.
-//The player should move as close as they can, with the distance between the player and the enemy being measured to see how close they are.
-//Once they get into a certain range, do the attack.
 
