@@ -4,46 +4,46 @@ using UnityEngine.UIElements;
 
 public class EnemyController : MonoBehaviour
 {
-    private int enemyID;
-    //TODO: Vary speed of enemies so that players can actually escape them. 
-    // Make melee enemy speed slightly slower than player melee speed
-    private float moveSpeed = 10;
     private bool canAttack;
     private bool isDead;
     private bool isMovingToObject;
     private bool isAttackingObject;
     private bool canTakeDamageFromMelee;
-    private Vector3 objectPosition;
+    private enum EnemyType{MELEE,SMALL_RANGED}
+    private enum ObjectType{FILE,PLAYER}
+    private int enemyID;
+    private Animator anim;
     private BoxCollider leftHandCollider;
     private BoxCollider rightHandCollider;
-
-    private enum EnemyType{MELEE,SMALL_RANGED}
     private GameManager gameManager;
     private GameObject[] filesToAttack;
     private GameObject playerToAttack;
     private GameObject objectToMoveTo;
-    private Animator anim;
-    [SerializeField] private EnemyType enemyType;
+    private ObjectType objectType;
+    private Vector3 objectPosition;
     [SerializeField] private float attackCooldownTime;
+    [SerializeField] private float moveSpeed;
     [SerializeField] private int health;
+    [SerializeField] private EnemyType enemyType;
     // Start is called before the first frame update
     void Start()
     {
+        canTakeDamageFromMelee = true;
+        canAttack = true;
+        objectType = ObjectType.FILE;
+        gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
+        enemyID = gameManager.GetEnemyID();
+        anim = GetComponent<Animator>();
+        print($"Anim is here {anim}");
         leftHandCollider = transform.GetChild(1).transform.GetChild(0).transform.GetChild(0).
         transform.GetChild(0).transform.GetChild(1).transform.GetChild(0).transform.GetChild(0).
         transform.GetChild(0).GetComponent<BoxCollider>();
         rightHandCollider = transform.GetChild(1).transform.GetChild(0).transform.GetChild(0).
         transform.GetChild(0).transform.GetChild(2).transform.GetChild(0).transform.GetChild(0).
         transform.GetChild(0).GetComponent<BoxCollider>();
-        anim = GetComponent<Animator>();
         gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
-        playerToAttack = gameObject;
         objectToMoveTo = gameObject;
         filesToAttack = gameManager.GetFilesToAttack();
-        canTakeDamageFromMelee = true;
-        canAttack = true;
-        moveSpeed = 0.07f;
-        enemyID = gameManager.GetEnemyID();
         gameManager.IncreaseEnemyNum();
     }
 
@@ -51,16 +51,34 @@ public class EnemyController : MonoBehaviour
     void Update()
     {
         if (isMovingToObject){
-            if (objectToMoveTo.CompareTag("File")){
-                MoveTowardsLocation(objectPosition);
-            } else{
-                MoveTowardsLocation(objectToMoveTo.transform.position);
+            switch(objectType){
+                case ObjectType.FILE:
+                    MoveTowardsLocation(objectPosition);
+                    break;
+                case ObjectType.PLAYER:
+                    MoveTowardsLocation(objectToMoveTo.transform.position);
+                    if (Vector3.Distance(transform.position,objectToMoveTo.transform.position) < 1.4f){
+                        isMovingToObject = false;
+                        anim.ResetTrigger("Run_trig");
+                        isAttackingObject = true;
+                    }
+                    break;
             }
+            // if (objectToMoveTo.CompareTag("File")){
+            //     MoveTowardsLocation(objectPosition);
+            // } else{
+            //     MoveTowardsLocation(objectToMoveTo.transform.position);
+            //     if (Vector3.Distance(transform.position,objectToMoveTo.transform.position) < 1.4f){
+            //         isMovingToObject = false;
+            //         anim.ResetTrigger("Run_trig");
+            //         isAttackingObject = true;
+            //     }
+            // }
         } else if (isAttackingObject && canAttack){
             AttackObject();
             // CheckIfObjectDestroyed();
-            if (objectToMoveTo.CompareTag("Player")){
-                if (Vector3.Distance(transform.position,objectToMoveTo.transform.position) > 1.5f){
+            if (objectType == ObjectType.PLAYER){
+                if (Vector3.Distance(transform.position,objectToMoveTo.transform.position) > 1.4f){
                     isAttackingObject = false;
                     anim.SetTrigger("Run_trig");
                     isMovingToObject = true;
@@ -117,24 +135,27 @@ public class EnemyController : MonoBehaviour
             //TODO: adjust when different status effects or buffs are used (e.g taking less damage or increased damage)
             canTakeDamageFromMelee = false;
             StartCoroutine(WaitToTakeMeleeDamage());
-            if (objectToMoveTo.CompareTag("File")){
+            if (objectType == ObjectType.FILE){
                 isAttackingObject = false;
                 objectToMoveTo = FindPlayerGameobject(other.gameObject);
+                objectType = ObjectType.PLAYER;
                 transform.LookAt(objectToMoveTo.transform.position);
                 anim.SetTrigger("Run_trig");
                 isMovingToObject = true;
             }
         } else if (other.gameObject.CompareTag("Laser")){
-            health -= 5;
+            health -= 15;
             Destroy(other.gameObject);
-        } else if (other.gameObject == objectToMoveTo){
+        } else if (other.gameObject == objectToMoveTo && objectType == ObjectType.FILE){
             isMovingToObject = false;
             anim.ResetTrigger("Run_trig");
             isAttackingObject = true;
         }
-        if (health <= 0){
+        if (health <= 0 && !isDead){
+            StopAllCoroutines();
             anim.ResetTrigger("Punch_trig");
             anim.SetTrigger("Death_trig");
+            gameManager.IncreasePlayerPoints(10);
             isDead = true;
             StartCoroutine(WaitForDeath());
         }
@@ -145,9 +166,12 @@ public class EnemyController : MonoBehaviour
     }
 
     public void StopAttackingPlayer(){
-        isAttackingObject = false;
-        objectToMoveTo = GetClosestFile();
-        isMovingToObject = true;
+        if (objectType == ObjectType.PLAYER){
+            isAttackingObject = false;
+            objectToMoveTo = GetClosestFile();
+            objectType = ObjectType.FILE;
+            isMovingToObject = true;
+        }
     }
 
     public GameObject GetPlayerToAttack(){

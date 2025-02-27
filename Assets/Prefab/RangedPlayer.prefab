@@ -4865,8 +4865,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   attackCooldownTime: 1
-  playerType: 1
+  playerSpeed: 0.09
+  health: 90
   laser: {fileID: 3101699443917431361, guid: 63a0f4de392ae4d689a94d16c8603f91, type: 3}
+  playerType: 1
 --- !u!1 &100004
 GameObject:
   m_ObjectHideFlags: 0

@@ -4898,6 +4898,8 @@ MonoBehaviour:
   attackCooldownTime: 0.3
   playerType: 0
   laser: {fileID: 3101699443917431361, guid: 63a0f4de392ae4d689a94d16c8603f91, type: 3}
+  health: 100
+  playerSpeed: 0.07
 --- !u!1 &3085294303382305128
 GameObject:
   m_ObjectHideFlags: 0
@@ -5414,8 +5416,8 @@ BoxCollider:
   m_IsTrigger: 1
   m_Enabled: 0
   serializedVersion: 2
-  m_Size: {x: 0.24184793, y: 0.198966, z: 0.25594503}
-  m_Center: {x: -0.14392278, y: -0.005407956, z: -0.007470133}
+  m_Size: {x: 0.59629047, y: 0.34566927, z: 0.8168253}
+  m_Center: {x: -0.321144, y: 0.003933626, z: -0.0015773777}
 --- !u!1 &3085294304055603546
 GameObject:
   m_ObjectHideFlags: 0
@@ -5587,8 +5589,8 @@ BoxCollider:
   m_IsTrigger: 1
   m_Enabled: 0
   serializedVersion: 2
-  m_Size: {x: 0.28741068, y: 0.24621779, z: 0.25646204}
-  m_Center: {x: 0.10521505, y: 0.010518752, z: -0.006546019}
+  m_Size: {x: 0.61071384, y: 0.34566927, z: 0.8168253}
+  m_Center: {x: 0.29339784, y: 0.003933767, z: -0.001577377}
 --- !u!1 &3085294304876989138
 GameObject:
   m_ObjectHideFlags: 0

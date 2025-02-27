@@ -11,7 +11,7 @@ public class PlayerLaser : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        speed = 15;
+        speed = 40;
         fireDirection = (enemyToAttackPosition - transform.position).normalized * speed;
     }
 

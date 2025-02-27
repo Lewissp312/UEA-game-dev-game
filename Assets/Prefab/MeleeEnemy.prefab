@@ -577,6 +577,7 @@ MonoBehaviour:
   enemyType: 0
   attackCooldownTime: 1
   health: 30
+  moveSpeed: 0.03
 --- !u!54 &-901180780011070759
 Rigidbody:
   m_ObjectHideFlags: 0

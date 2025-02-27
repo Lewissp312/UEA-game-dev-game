@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
@@ -5,40 +6,43 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    private enum PlayerType{MELEE,SMALL_RANGED}
-    private float playerSpeed;
-    private int enemyToAttackID;
     private bool isOverPlayer;
     private bool isMovingToPosition;
     private bool isPlayerClicked;
     private bool isLockedOntoEnemy;
     private bool isMovingToEnemy;
     private bool canAttack;
+    private enum PlayerType{MELEE,SMALL_RANGED}
+    private int enemyToAttackID;
+    private int points;
+    private Animator playerAnim;
     private BoxCollider leftHandCollider;
     private BoxCollider rightHandCollider;
-    private Animator playerAnim;
+    private Color ringColor;
+    private Color ringColorTrans;
     private Dictionary<int,GameObject> enemyInfo;
-    private GameObject enemyToAttack;
     private EnemyController enemyToAttackScript;
+    private GameManager gameManager;
+    private GameObject enemyToAttack;
+    private ParticleSystem selectedEffect; 
+    private Quaternion laserRotation;
+    private Renderer ringRenderer;
     private Vector3 mousePosition;
     private Vector3 positionToMoveTo;
     private Vector3 lastGoodMousePos;
     private Vector3 laserPosition;
     private Vector3 laserHeight;
     private Vector3 enemyPositionForLaser;
-    private Quaternion laserRotation;
-    private Color ringColor;
-    private Color ringColorTrans;
-    private Renderer ringRenderer;
-    private ParticleSystem selectedEffect; 
     [SerializeField] private float attackCooldownTime;
-    [SerializeField] private PlayerType playerType;
+    [SerializeField] private float playerSpeed;
+    [SerializeField] private int health;
     [SerializeField] private GameObject laser;
+    [SerializeField] private PlayerType playerType;
     // Start is called before the first frame update
     void Start()
     {
-        playerSpeed = 0.07f;
-        enemyInfo = new();
+        canAttack = true;
+        playerAnim = GetComponent<Animator>();
         //TODO: find better way to loop through children and grandchildren
         leftHandCollider = transform.GetChild(1).transform.GetChild(0).transform.GetChild(0).
         transform.GetChild(0).transform.GetChild(1).transform.GetChild(0).transform.GetChild(0).
@@ -46,12 +50,12 @@ public class PlayerController : MonoBehaviour
         rightHandCollider = transform.GetChild(1).transform.GetChild(0).transform.GetChild(0).
         transform.GetChild(0).transform.GetChild(2).transform.GetChild(0).transform.GetChild(0).
         transform.GetChild(0).GetComponent<BoxCollider>();
-        playerAnim = GetComponent<Animator>();
-        selectedEffect = GetComponent<ParticleSystem>();
-        ringRenderer = transform.Find("PlayerAttackArea").gameObject.GetComponent<Renderer>();
         ringColor = new Color(0.96f,0.96f,0.51f,0.3f);
         ringColorTrans = new Color(0.96f,0.96f,0.51f,0f);
-        canAttack = true;
+        enemyInfo = new();
+        selectedEffect = GetComponent<ParticleSystem>();
+        ringRenderer = transform.GetChild(2).gameObject.GetComponent<Renderer>();
+        gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
     }
 
     // Update is called once per frame
@@ -60,9 +64,7 @@ public class PlayerController : MonoBehaviour
         if (Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown(1) || Input.GetMouseButtonDown(3)){
             if (!isMovingToPosition){
                 mousePosition = GetMouseOnBoardPosition(out isOverPlayer);
-                if (isOverPlayer){ //May need to include a check here later to see if 
-                // gameManager is preparing an ultimate and this player has just been selected, because in that case
-                // the isClicked/highlighting effect would not be needed
+                if (isOverPlayer){
                     isPlayerClicked = !isPlayerClicked;
                     if (selectedEffect.isPlaying){
                         selectedEffect.Clear();
@@ -95,14 +97,21 @@ public class PlayerController : MonoBehaviour
                         playerAnim.ResetTrigger("Run_trig");
                         canAttack = true;
                     }
-                }
-                else if(canAttack){
+                } else if(canAttack){
                     if (enemyToAttackScript.GetIsDead() || enemyToAttack.IsDestroyed()){
                         canAttack = false;
                         isLockedOntoEnemy = false;
                         enemyInfo.Remove(enemyToAttackID);
+                    } else if(
+                            playerType == PlayerType.MELEE && 
+                            Vector3.Distance(transform.position,enemyToAttack.transform.position) > 1.4f
+                        ){
+                        isMovingToEnemy = true;
+                        canAttack = false;
+                        playerAnim.SetTrigger("Run_trig");
                     } else{
-                        AttackPlayer();
+                        transform.LookAt(enemyToAttack.transform.position);
+                        AttackEnemy();
                     }
                 }
             } else if (enemyInfo.Count > 0){
@@ -146,6 +155,9 @@ public class PlayerController : MonoBehaviour
     }
 
     private void OnTriggerEnter(Collider other){
+        if (other.gameObject.CompareTag("EnemyMelee")){
+            gameManager.IncreaseEnemyPoints(1);
+        }
     }
 
     private void OnCollisionEnter(Collision other){
@@ -239,7 +251,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private void AttackPlayer(){
+    private void AttackEnemy(){
         switch(playerType){
             case PlayerType.MELEE:
                 //Checks if the enemy is either doing their death animation or the enemy object is destroyed
@@ -271,6 +283,14 @@ public class PlayerController : MonoBehaviour
 
     }
 
+    // private void CheckEnemyIsDead(){
+    //     if (enemyToAttackScript.GetIsDead() || enemyToAttack.IsDestroyed()){
+    //         canAttack = false;
+    //         isLockedOntoEnemy = false;
+    //         enemyInfo.Remove(enemyToAttackID);
+    //     }
+    // }
+
     IEnumerator AttackCooldown(){ //could probably make this into a generic "AttackCooldown"
     //time to wait would be a variable that is established on start
         // playerAnim.SetTrigger("Punch_trig");
@@ -288,7 +308,13 @@ public class PlayerController : MonoBehaviour
                 //stop animation
                 break;
         }
-        canAttack = true;
+        if (enemyToAttackScript.GetIsDead() || enemyToAttack.IsDestroyed()){
+            canAttack = false;
+            isLockedOntoEnemy = false;
+            enemyInfo.Remove(enemyToAttackID);
+        } else{
+            canAttack = true;
+        }
     }
 }
 

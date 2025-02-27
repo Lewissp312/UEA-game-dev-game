@@ -1,17 +1,24 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
     private int enemyID;
-    private GameObject[] filesToAttack;
+    private int playerPoints;
+    private int enemyPoints;
+    [SerializeField] private TextMeshProUGUI playerPointsText;
+    [SerializeField] private TextMeshProUGUI enemyPointsText;
+
+    // private GameObject[] filesToAttack;
     // Start is called before the first frame update
     void Start()
     {
-        filesToAttack = GameObject.FindGameObjectsWithTag("File");
         enemyID = 0;
+        // filesToAttack = GameObject.FindGameObjectsWithTag("File");
     }
 
     // Update is called once per frame
@@ -30,6 +37,16 @@ public class GameManager : MonoBehaviour
 
     public void IncreaseEnemyNum(){
         enemyID++;
+    }
+
+    public void IncreasePlayerPoints(int points){
+        playerPoints+=points;
+        playerPointsText.text = $"Player Points: {playerPoints}";
+    }
+
+    public void IncreaseEnemyPoints(int points){
+        enemyPoints+=points;
+        enemyPointsText.text = $"Enemy Points: {enemyPoints}";
     }
 
 

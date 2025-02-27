@@ -39,9 +39,7 @@ public class AttackArea : MonoBehaviour
             EnemyController enemyScript = other.gameObject.GetComponent<EnemyController>();
             int enemyNum = enemyScript.GetEnemyID();
             parentScript.RemoveFromEnemyList(enemyNum);
-            if (enemyScript.GetPlayerToAttack() == transform.parent.gameObject){
-                enemyScript.StopAttackingPlayer();
-            }
+            enemyScript.StopAttackingPlayer();
         }
     }
 }

@@ -10,6 +10,8 @@ TagManager:
   - Fist
   - Laser
   - File
+  - Melee
+  - EnemyMelee
   layers:
   - Default
   - TransparentFX
