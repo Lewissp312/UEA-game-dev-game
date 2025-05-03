@@ -504,8 +504,9 @@ GameObject:
   - component: {fileID: 331558771}
   - component: {fileID: 7701615574743732692}
   - component: {fileID: -901180780011070759}
+  - component: {fileID: 1688728590}
   m_Layer: 0
-  m_Name: MeleeEnemy
+  m_Name: EnemyMelee
   m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -538,7 +539,7 @@ Animator:
   m_GameObject: {fileID: 3176381565244240083}
   m_Enabled: 1
   m_Avatar: {fileID: 9000000, guid: c72c97e952bf7834b85e6164373d310d, type: 3}
-  m_Controller: {fileID: 9100000, guid: 1de385df2ff713a41adfcbbb63b8af91, type: 2}
+  m_Controller: {fileID: 22100000, guid: 0794e9c59dc194c0db2ae5a18dbccb31, type: 2}
   m_CullingMode: 1
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
@@ -574,10 +575,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bdadbced6a45042ef8fbde64b516257f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  enemyType: 0
-  attackCooldownTime: 1
-  health: 30
+  attackCooldownTime: 1.5
   moveSpeed: 0.03
+  health: 20
+  enemyType: 0
+  playerClasses: []
+  laser: {fileID: 0}
+  rightHand: {fileID: 1549573836815136225}
+  leftHand: {fileID: 3296883913861075862}
+  leftFoot: {fileID: 6124912756875099244}
 --- !u!54 &-901180780011070759
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -594,6 +600,28 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!195 &1688728590
+NavMeshAgent:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3176381565244240083}
+  m_Enabled: 1
+  m_AgentTypeID: 0
+  m_Radius: 1
+  m_Speed: 15
+  m_Acceleration: 200
+  avoidancePriority: 50
+  m_AngularSpeed: 600
+  m_StoppingDistance: 0
+  m_AutoTraverseOffMeshLink: 1
+  m_AutoBraking: 1
+  m_AutoRepath: 1
+  m_Height: 46.812096
+  m_BaseOffset: 0
+  m_WalkableMask: 4294967295
+  m_ObstacleAvoidanceType: 0
 --- !u!1 &3176381565244240097
 GameObject:
   m_ObjectHideFlags: 0
@@ -637,8 +665,8 @@ BoxCollider:
   m_IsTrigger: 1
   m_Enabled: 0
   serializedVersion: 2
-  m_Size: {x: 0.24184793, y: 0.198966, z: 0.25594503}
-  m_Center: {x: -0.14392278, y: -0.005407956, z: -0.007470133}
+  m_Size: {x: 0.42764825, y: 0.44896737, z: 0.39716133}
+  m_Center: {x: -0.22274302, y: 0.018759308, z: -0.004807489}
 --- !u!1 &3176381565244240105
 GameObject:
   m_ObjectHideFlags: 0
@@ -809,9 +837,10 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3176381565244337283}
+  - component: {fileID: 6124912756875099244}
   m_Layer: 0
   m_Name: Foot_Left_jnt
-  m_TagString: Untagged
+  m_TagString: EnemyMelee
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -832,6 +861,19 @@ Transform:
   m_Father: {fileID: 3176381565244337289}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &6124912756875099244
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3176381565244240117}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_Enabled: 0
+  serializedVersion: 2
+  m_Size: {x: 0.4763312, y: 0.38993612, z: 0.59770143}
+  m_Center: {x: -0.015635505, y: -0.08363276, z: 0.021541614}
 --- !u!1 &3176381565244240119
 GameObject:
   m_ObjectHideFlags: 0
@@ -939,5 +981,5 @@ BoxCollider:
   m_IsTrigger: 1
   m_Enabled: 0
   serializedVersion: 2
-  m_Size: {x: 0.28741068, y: 0.24621779, z: 0.25646204}
-  m_Center: {x: 0.10521505, y: 0.010518752, z: -0.006546019}
+  m_Size: {x: 0.37805957, y: 0.42596668, z: 0.39716133}
+  m_Center: {x: 0.23337328, y: -0.008683996, z: -0.0048075058}

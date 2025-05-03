@@ -12,6 +12,17 @@ TagManager:
   - File
   - Melee
   - EnemyMelee
+  - Point
+  - PlayerLaser
+  - EnemyLaser
+  - Wall
+  - Sword
+  - Heavy
+  - PlayerSword
+  - PlayerHeavy
+  - PlayerMelee
+  - EnemySword
+  - EnemyHeavy
   layers:
   - Default
   - TransparentFX
@@ -19,8 +30,8 @@ TagManager:
   - 
   - Water
   - UI
-  - 
-  - 
+  - File
+  - Wall
   - 
   - 
   - 

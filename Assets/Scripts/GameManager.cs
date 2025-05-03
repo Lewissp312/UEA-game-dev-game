@@ -10,6 +10,7 @@ public class GameManager : MonoBehaviour
     private int enemyID;
     private int playerPoints;
     private int enemyPoints;
+    private GameObject[] filesToAttack;
     [SerializeField] private TextMeshProUGUI playerPointsText;
     [SerializeField] private TextMeshProUGUI enemyPointsText;
 
@@ -18,7 +19,7 @@ public class GameManager : MonoBehaviour
     void Start()
     {
         enemyID = 0;
-        // filesToAttack = GameObject.FindGameObjectsWithTag("File");
+        filesToAttack = GameObject.FindGameObjectsWithTag("File");
     }
 
     // Update is called once per frame

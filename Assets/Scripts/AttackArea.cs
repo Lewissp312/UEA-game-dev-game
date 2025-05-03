@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
-
 public class AttackArea : MonoBehaviour
 {
     private PlayerController parentScript;
