@@ -15,10 +15,10 @@ public class PlayerController : MonoBehaviour
     private bool canAttack;
     private enum PlayerType{MELEE,SWORD,HEAVY,GUN,ROCKET};
     private int enemyToAttackID;
-    private int points;
     private int attackAnimationNamesLen;
+    private float distanceAttackingEnemy;
     private string attackAnimationName;
-    private string[] attackAnimationNames = {"Attack_1_trig","Attack_2_trig","Attack_3_trig"};
+    private readonly string[] attackAnimationNames = {"Attack_1_trig","Attack_2_trig","Attack_3_trig"};
     private Animator playerAnim;
     private Color ringColor;
     private Color ringColorTrans;
@@ -66,12 +66,17 @@ public class PlayerController : MonoBehaviour
         enemyInfo = new();
         attackAnimationName = "Attack_1_trig";
         random = new System.Random();
+        distanceAttackingEnemy = playerType switch
+        {
+            PlayerType.GUN or PlayerType.ROCKET => 8f,
+            _ => 1.4f,
+        };
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown(1) || Input.GetMouseButtonDown(3)){
+        if (Input.GetMouseButtonDown(0)){
             if (!isMovingToPosition){
                 mousePosition = GetMouseOnBoardPosition(out isOverPlayer);
                 //if the player clicks the player character, handle the effects accordingly
@@ -89,18 +94,11 @@ public class PlayerController : MonoBehaviour
                     isLockedOntoEnemy = false;
                     isMovingToEnemy = false;
                     canAttack = false;
-                    // StopAllCoroutines();
-                    // playerAnim.ResetTrigger(attackAnimationName);
                     playerAnim.SetTrigger("Run_trig");
-                    // print(playerAnim.GetBool("Run_trig"));
-                    // print($"After being set, it is {playerAnim.GetBool("Run_trig")}");
                     isPlayerClicked = false;
                     selectedEffect.Clear();
                     selectedEffect.Stop();
                     playerAgent.SetDestination(positionToMoveTo);
-                    // print($"At the bottom, it is {playerAnim.GetBool("Run_trig")}");
-                    // playerAnim.GetBool("Run_trig");
-                    // print($"I am now moving to {positionToMoveTo}");
                 }
             }
         }
@@ -108,76 +106,37 @@ public class PlayerController : MonoBehaviour
         if (!isMovingToPosition){ 
             if (isLockedOntoEnemy){
                 if (isMovingToEnemy){
-                    MoveToPosition(enemyToAttack.transform.position);
-                    switch(playerType){
-                        case PlayerType.GUN or PlayerType.ROCKET:
-                            // print("Moving to enemy");
-                            // print($"Remaining distance is {playerAgent.remainingDistance}");
-                            if (Vector3.Distance(transform.position,enemyToAttack.transform.position) <= 5f){
-                                playerAgent.ResetPath();
-                                // playerAgent.isStopped = true;
-                                // playerAgent.SetDestination(playerAgent.transform.position);
-                                isMovingToEnemy = false;
-                                playerAnim.ResetTrigger("Run_trig");
-                                canAttack = true;
-                            }
-                            break;
-                        case PlayerType.MELEE or PlayerType.SWORD or PlayerType.HEAVY:
-                            if (Vector3.Distance(transform.position,enemyToAttack.transform.position) <= 1.4f){
-                                playerAgent.ResetPath();
-                                // playerAgent.isStopped = true;
-                                // playerAgent.SetDestination(playerAgent.transform.position);
-                                isMovingToEnemy = false;
-                                playerAnim.ResetTrigger("Run_trig");
-                                canAttack = true;
-                            }
-                            break;
-                    }
-                    // Vector3.Distance(transform.position,enemyToAttack.transform.position
-                } else if(canAttack){
-                    print("Yeah I can attack");
                     if (enemyToAttackScript.GetIsDead() || enemyToAttack.IsDestroyed()){
                         canAttack = false;
+                        isMovingToEnemy = false;
                         isLockedOntoEnemy = false;
                         enemyInfo.Remove(enemyToAttackID);
                     } else{
-                        switch(playerType){
-                            case PlayerType.GUN or PlayerType.ROCKET:
-                                if(Vector3.Distance(transform.position,enemyToAttack.transform.position) > 5f){
-                                    isMovingToEnemy = true;
-                                    canAttack = false;
-                                    // playerAnim.ResetTrigger(attackAnimationName);
-                                    playerAnim.SetTrigger("Run_trig");
-                                }
-                                break;
-                            case PlayerType.MELEE or PlayerType.SWORD or PlayerType.HEAVY:
-                                if(Vector3.Distance(transform.position,enemyToAttack.transform.position) > 1.4f){
-                                    isMovingToEnemy = true;
-                                    canAttack = false;
-                                    // playerAnim.ResetTrigger(attackAnimationName);
-                                    playerAnim.SetTrigger("Run_trig");
-                                }
-                                break;
+                        playerAgent.SetDestination(enemyToAttack.transform.position);
+                        if (Vector3.Distance(transform.position,enemyToAttack.transform.position) <= distanceAttackingEnemy){
+                            playerAgent.ResetPath();
+                            isMovingToEnemy = false;
+                            playerAnim.ResetTrigger("Run_trig");
+                            canAttack = true;
+                        }
+                    }
+                } else if(canAttack){
+                    if (enemyToAttackScript.GetIsDead() || enemyToAttack.IsDestroyed()){
+                        canAttack = false;
+                        isMovingToEnemy = false;
+                        isLockedOntoEnemy = false;
+                        enemyInfo.Remove(enemyToAttackID);
+                    } else{
+                        if(Vector3.Distance(transform.position,enemyToAttack.transform.position) > distanceAttackingEnemy){
+                            isMovingToEnemy = true;
+                            canAttack = false;
+                            playerAnim.SetTrigger("Run_trig");
                         }
                         if (canAttack){
-                            print("I am attacking");
                             transform.LookAt(enemyToAttack.transform.position);
                             AttackEnemy();
                         }
                     }
-
-                    // else if(
-                    //         playerType == PlayerType.MELEE &&
-                    //         Vector3.Distance(transform.position,enemyToAttack.transform.position) > 1.4f
-                    //     ){
-                    //     isMovingToEnemy = true;
-                    //     canAttack = false;
-                    //     playerAnim.SetTrigger("Run_trig");
-                    //     // playerAgent.isStopped = false;
-                    // } else{
-                    //     transform.LookAt(enemyToAttack.transform.position);
-                    //     AttackEnemy();
-                    // }
                 }
             } else if (enemyInfo.Count > 0){
                 enemyToAttack = GetClosestEnemy();
@@ -187,42 +146,16 @@ public class PlayerController : MonoBehaviour
                     enemyToAttackID = enemyToAttackScript.GetEnemyID();
                     isLockedOntoEnemy = true;
                     isMovingToEnemy = true;
-                    // playerAnim.ResetTrigger(attackAnimationName);
                     playerAnim.SetTrigger("Run_trig");
-                    // playerAgent.isStopped = false;
-                    // switch(playerType){
-                    //     case PlayerType.MELEE:
-                    //         isMovingToEnemy = true;
-                    //         playerAnim.SetTrigger("Run_trig");
-                    //         break;
-                    //     case PlayerType.GUN:
-                    //         canAttack = true;
-                    //         break;
-                    // }
-                    // if (playerType == PlayerType.MELEE){
-                    //     isMovingToEnemy = true;
-                    //     playerAnim.SetTrigger("Run_trig");
-                    // }
                 }
             }   
         }
         if (isMovingToPosition){
-            // print($"The value in moving position is: {playerAnim.GetBool("Run_trig")}");
-            // print($"The remaining distance is {playerAgent.remainingDistance}");
-            // MoveToPosition(positionToMoveTo);
             if (Vector3.Distance(transform.position,positionToMoveTo) <= 0){
                 playerAgent.ResetPath();
                 isMovingToPosition = false;
                 playerAnim.ResetTrigger("Run_trig");
-                // playerAgent.isStopped = true;
             }
-
-            // if (transform.position == positionToMoveTo){
-            //     isMovingToPosition = false;
-            //     playerAnim.ResetTrigger("Run_trig");
-
-            //     playerAgent.isStopped = true;
-            // }
         }     
     }
 
@@ -240,7 +173,11 @@ public class PlayerController : MonoBehaviour
     //Sword Health = 425
     //Heavy Health = 500
     private void OnTriggerEnter(Collider other){
-        if (other.gameObject.CompareTag("EnemyMelee") || other.gameObject.CompareTag("EnemyLaser") || other.gameObject.CompareTag("EnemySword") || other.gameObject.CompareTag("EnemyHeavy")){
+        if (other.gameObject.CompareTag("EnemyMelee") || 
+            other.gameObject.CompareTag("EnemyLaser") || 
+            other.gameObject.CompareTag("EnemySword") || 
+            other.gameObject.CompareTag("EnemyHeavy"))
+        {
             gameManager.IncreaseEnemyPoints(1);
         }
         if (other.gameObject.CompareTag("EnemyMelee")){
@@ -252,9 +189,6 @@ public class PlayerController : MonoBehaviour
         } else if(other.gameObject.CompareTag("EnemyHeavy")){
             health -= 30;
         //TODO: Put death proceedures here
-        // if (other.gameObject.CompareTag("EnemyLaser")){
-        //     gameManager.IncreaseEnemyPoints(1);
-        // }
         }
     }
 
@@ -284,9 +218,6 @@ public class PlayerController : MonoBehaviour
                 enemyInfo.Remove(enemyID);
             }
         }
-        // if (lowestDistance == 100){
-        //     return gameObject;
-        // }
         return lowestDistanceEnemy;
     }
 
@@ -300,20 +231,6 @@ public class PlayerController : MonoBehaviour
 
     private void MoveToPosition(Vector3 positionToMoveTo){
         playerAgent.SetDestination(positionToMoveTo);
-        // transform.SetPositionAndRotation(
-        //     Vector3.MoveTowards(
-        //         transform.position,
-        //         positionToMoveTo,
-        //         playerSpeed
-        //     ), 
-        //     Quaternion.RotateTowards(
-        //         transform.rotation, 
-        //         Quaternion.LookRotation(
-        //             positionToMoveTo - transform.position
-        //         ), 
-        //         850 * Time.deltaTime
-        //     )
-        // );
     }
 
 
@@ -355,21 +272,12 @@ public class PlayerController : MonoBehaviour
         int randomNum = random.Next(0,attackAnimationNamesLen);
         print(randomNum);
         attackAnimationName = attackAnimationNames[randomNum];
-        // print(attackAnimationName);
         playerAnim.SetTrigger(attackAnimationName);
         print($"Now setting {attackAnimationName}");
         switch(playerType){
             case PlayerType.MELEE:
                 //Checks if the enemy is either doing their death animation or the enemy object is destroyed
-                //TODO: have different combat animations here, could set incrementing int variable to determine what attack to use
-                // playerAnim.SetTrigger("Punch_trig");
-                // playerAnim.SetTrigger("Attack_1_trig");
-                //TODO: enable/disable certain colliders depending on what melee attack is being used 
-                // (e.g right hand for normal punch, right leg for kick)
-                // leftHandCollider.enabled = true;
-                // rightHand.enabled = true;
                 meleeBoxColliders[attackAnimationName].enabled = true;
-                // StartCoroutine(AttackCooldown());
                 break;
             case PlayerType.SWORD:
                 swordBoxColliders[attackAnimationName].enabled = true;
@@ -379,7 +287,6 @@ public class PlayerController : MonoBehaviour
                 break;
             case PlayerType.GUN:
                 transform.LookAt(enemyToAttack.transform.position);
-                //start firing animation
                 //TODO: change this to object pooling to be more effecient
                 laserHeight = new Vector3(transform.position.x,transform.position.y + 2,transform.position.z);
                 laserPosition = (transform.forward * 2) + laserHeight;
@@ -392,26 +299,13 @@ public class PlayerController : MonoBehaviour
                 PlayerLaser laserScript = newLaser.GetComponent<PlayerLaser>();
                 laserScript.SetPositionToAttack(enemyPositionForLaser);
                 laserScript.SetParentGameObject(gameObject);
-                // playerAnim.SetTrigger("Shoot_small_trig");
-                // playerAnim.SetTrigger("Attack_1_trig");
                 break;
         }
         StartCoroutine(AttackCooldown());
 
     }
 
-    // private void CheckEnemyIsDead(){
-    //     if (enemyToAttackScript.GetIsDead() || enemyToAttack.IsDestroyed()){
-    //         canAttack = false;
-    //         isLockedOntoEnemy = false;
-    //         enemyInfo.Remove(enemyToAttackID);
-    //     }
-    // }
-
-    IEnumerator AttackCooldown(){ //could probably make this into a generic "AttackCooldown"
-    //time to wait would be a variable that is established on start
-        // playerAnim.SetTrigger("Punch_trig");
-        //deactivate hand colliders here
+    IEnumerator AttackCooldown(){
         canAttack = false;
         yield return new WaitForSeconds(attackCooldownTime);
         playerAnim.ResetTrigger(attackAnimationName);
