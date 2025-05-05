@@ -58,8 +58,8 @@ public class FileController : MonoBehaviour
         return gameObject;
     }
 
-    public void MakePointAvailable(string pointName){
-        pointIsOccupiedDict[pointName] = false;
+    public void MakePointAvailable(int pointNum){
+        pointIsOccupiedDict[$"Point {pointNum}"] = false;
     }
 
     private void OnTriggerEnter(Collider other){

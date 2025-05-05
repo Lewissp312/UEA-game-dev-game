@@ -60,7 +60,7 @@ Transform:
   m_GameObject: {fileID: 5940694112721892183}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -0.025594711, y: 0.14, z: 0.060697556}
-  m_LocalScale: {x: 31.152786, y: 0.048298646, z: 33.094463}
+  m_LocalScale: {x: 24.544346, y: 0.038053054, z: 26.074135}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 5940694112770596447}
@@ -5070,8 +5070,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   attackCooldownTime: 4
-  playerSpeed: 0.07
-  health: 200
+  playerSpeed: 0.09
+  health: 3500
   laser: {fileID: 3101699443917431361, guid: 63a0f4de392ae4d689a94d16c8603f91, type: 3}
   playerType: 2
   leftHand: {fileID: 980652736833941590}
@@ -5087,7 +5087,7 @@ NavMeshAgent:
   m_Enabled: 1
   m_AgentTypeID: 0
   m_Radius: 2.0027
-  m_Speed: 7
+  m_Speed: 7.5
   m_Acceleration: 200
   avoidancePriority: 50
   m_AngularSpeed: 400

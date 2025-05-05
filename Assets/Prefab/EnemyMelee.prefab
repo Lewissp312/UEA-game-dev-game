@@ -577,7 +577,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   attackCooldownTime: 1.5
   moveSpeed: 0.03
-  health: 20
+  health: 50
   enemyType: 0
   playerClasses: []
   laser: {fileID: 0}
@@ -596,7 +596,7 @@ Rigidbody:
   m_Drag: 0
   m_AngularDrag: 0.05
   m_UseGravity: 0
-  m_IsKinematic: 1
+  m_IsKinematic: 0
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
@@ -609,8 +609,8 @@ NavMeshAgent:
   m_GameObject: {fileID: 3176381565244240083}
   m_Enabled: 1
   m_AgentTypeID: 0
-  m_Radius: 1
-  m_Speed: 15
+  m_Radius: 0.2
+  m_Speed: 11
   m_Acceleration: 200
   avoidancePriority: 50
   m_AngularSpeed: 600
@@ -621,7 +621,7 @@ NavMeshAgent:
   m_Height: 46.812096
   m_BaseOffset: 0
   m_WalkableMask: 4294967295
-  m_ObstacleAvoidanceType: 0
+  m_ObstacleAvoidanceType: 4
 --- !u!1 &3176381565244240097
 GameObject:
   m_ObjectHideFlags: 0

@@ -23,6 +23,7 @@ TagManager:
   - PlayerMelee
   - EnemySword
   - EnemyHeavy
+  - SpawnPoint
   layers:
   - Default
   - TransparentFX

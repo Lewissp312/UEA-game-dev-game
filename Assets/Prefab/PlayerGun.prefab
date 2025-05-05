@@ -4867,7 +4867,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   attackCooldownTime: 1.5
   playerSpeed: 0.09
-  health: 375
+  health: 1000
   laser: {fileID: 3101699443917431361, guid: 63a0f4de392ae4d689a94d16c8603f91, type: 3}
   playerType: 3
   leftHand: {fileID: 0}

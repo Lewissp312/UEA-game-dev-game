@@ -11,6 +11,8 @@ public class GameManager : MonoBehaviour
     private int playerPoints;
     private int enemyPoints;
     private GameObject[] filesToAttack;
+    private GameObject[] spawnPoints;
+    [SerializeField] private GameObject[] enemies;
     [SerializeField] private TextMeshProUGUI playerPointsText;
     [SerializeField] private TextMeshProUGUI enemyPointsText;
 
@@ -20,12 +22,25 @@ public class GameManager : MonoBehaviour
     {
         enemyID = 0;
         filesToAttack = GameObject.FindGameObjectsWithTag("File");
+        spawnPoints = new GameObject[296];
+        int numOfSpawnPoints = 0;
+        foreach (Transform child in transform)
+        {
+            if (child.CompareTag("SpawnPoint"))
+            {
+                spawnPoints[numOfSpawnPoints] = child.gameObject;
+                Instantiate(enemies[0],child.gameObject.transform.position,enemies[0].transform.rotation);
+                numOfSpawnPoints++;
+            }
+        }
+        // foreach(GameObject spawnPoint in spawnPoints){
+        //     Instantiate(enemies[0],spawnPoint.transform.position,enemies[0].transform.rotation);
+        // }
     }
 
     // Update is called once per frame
     void Update()
     {
-
     }
 
     public int GetEnemyID(){

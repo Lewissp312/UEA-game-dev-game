@@ -274,6 +274,11 @@ public class EnemyController : MonoBehaviour
         } else{
             if (objectType == ObjectType.FILE){
                 if (other.gameObject.CompareTag("PlayerMelee") || other.gameObject.CompareTag("PlayerSword") || other.gameObject.CompareTag("PlayerHeavy")){
+                    if (objectToMoveTo.CompareTag("Point")){
+                        objectToMoveTo.transform.parent.gameObject.GetComponent<FileController>().MakePointAvailable(pointNum);
+                    } else{
+                        objectToMoveTo.GetComponent<FileController>().MakePointAvailable(pointNum);
+                    }
                     objectToMoveTo = FindPlayerGameobject(other.gameObject);
                     isAttackingObject = false;
                     objectType = ObjectType.PLAYER;
@@ -299,11 +304,13 @@ public class EnemyController : MonoBehaviour
         return isDead;
     }
 
-    public void StopAttackingPlayer(){
+    public void StopAttackingPlayer(GameObject player){
         if (objectType == ObjectType.PLAYER){
-            isAttackingObject = false;
-            objectToMoveTo = GetObjectToAttack();
-            isMovingToObject = true;
+            if (objectToMoveTo == player){
+                isAttackingObject = false;
+                objectToMoveTo = GetObjectToAttack();
+                isMovingToObject = true;
+            }
         }
     }
 

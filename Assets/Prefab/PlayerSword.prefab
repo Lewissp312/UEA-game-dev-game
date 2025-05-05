@@ -4898,7 +4898,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   attackCooldownTime: 2
   playerSpeed: 0.07
-  health: 120
+  health: 2000
   laser: {fileID: 3101699443917431361, guid: 63a0f4de392ae4d689a94d16c8603f91, type: 3}
   playerType: 1
   leftHand: {fileID: 4683777444169537961}
@@ -4914,7 +4914,7 @@ NavMeshAgent:
   m_Enabled: 1
   m_AgentTypeID: 0
   m_Radius: 1
-  m_Speed: 10
+  m_Speed: 12
   m_Acceleration: 200
   avoidancePriority: 50
   m_AngularSpeed: 600

@@ -192,13 +192,10 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private void OnCollisionEnter(Collision other){
-    }
-
     private GameObject GetClosestEnemy(){
         float lowestDistance = 100;
         float tempDistance;
-        int[] enemiesToRemove = new int[20];
+        int[] enemiesToRemove = new int[296];
         int enemiesToRemoveIndex = 0;
         GameObject lowestDistanceEnemy = gameObject;
         foreach(KeyValuePair<int, GameObject> enemy in enemyInfo){
@@ -227,10 +224,6 @@ public class PlayerController : MonoBehaviour
 
     public void RemoveFromEnemyList(int enemyID){
         enemyInfo.Remove(enemyID);
-    }
-
-    private void MoveToPosition(Vector3 positionToMoveTo){
-        playerAgent.SetDestination(positionToMoveTo);
     }
 
 
@@ -276,7 +269,6 @@ public class PlayerController : MonoBehaviour
         print($"Now setting {attackAnimationName}");
         switch(playerType){
             case PlayerType.MELEE:
-                //Checks if the enemy is either doing their death animation or the enemy object is destroyed
                 meleeBoxColliders[attackAnimationName].enabled = true;
                 break;
             case PlayerType.SWORD:
