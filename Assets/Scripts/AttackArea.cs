@@ -19,8 +19,6 @@ public class AttackArea : MonoBehaviour
 
     void OnCollisionEnter(Collision collision)
     {
-        print(collision);
-        // Debug.Log($"Collision: {collision}");
         if (collision.gameObject.CompareTag("Enemy")){
             Debug.Log("Enemy collision");
         }

@@ -23,7 +23,7 @@ public class EnemyController : MonoBehaviour
     private enum ObjectType{FILE,PLAYER}
     private GameManager gameManager;
     private GameObject[] filesToAttack;
-    private GameObject playerToAttack;
+    // private GameObject playerToAttack;
     private GameObject objectToMoveTo;
     private ObjectType objectType;
     private NavMeshAgent enemyAgent;
@@ -93,13 +93,10 @@ public class EnemyController : MonoBehaviour
                             }
                             //The gun enemy can sometimes not look at the file when they are travelling to it, this ensures they do at a certain point
                             if (Vector3.Distance(transform.position,new Vector3(objectToMoveTo.transform.position.x,transform.position.y,objectToMoveTo.transform.position.z)) <= 20){
-                                print("I am looking at it as a gun");
                                 transform.LookAt(objectToMoveTo.transform.position);
                             }
                             break;
                         default:
-                            print($"Remaining distance: {Vector3.Distance(transform.position,objectToMoveTo.transform.position)}");
-                            print($"Current position: {transform.position}. Position to move to: {objectToMoveTo.transform.position}");
                             if (Vector3.Distance(transform.position,new Vector3(objectToMoveTo.transform.position.x,transform.position.y,objectToMoveTo.transform.position.z)) <= 0)
                             {
                                 isMovingToObject = false;
@@ -111,15 +108,14 @@ public class EnemyController : MonoBehaviour
                                     //Gets them looking straight ahead at the file once positioned, 
                                     // as enemies looking at the centre can sometimes be stanced diagonally
                                     //TODO: Look at changing this as enemies in the middle already look directly ahead at the file
-                                    case 1 or 2 or 3 or 4 or 5 or 11 or 12 or 13 or 14 or 15:
+                                    case 1 or 2 or 3 or 4 or 5 or 6 or 7 or 8 or 9 or 19 or 20 or 21 or 22 or 23 or 24 or 25 or 26 or 27:
                                         posToLookAt = new(transform.position.x,transform.position.y,filePosition.z);
                                         transform.LookAt(posToLookAt);
-                                        print("I am looking at it as a melee");
+                                        // print("I am looking at it as a melee");
                                         break;
-                                    case 6 or 7 or 8 or 9 or 10 or 16 or 17 or 18 or 19 or 20:
+                                    case 10 or 11 or 12 or 13 or 14 or 15 or 16 or 17 or 18 or 28 or 29 or 30 or 31 or 32 or 33 or 34 or 35 or 36:
                                         posToLookAt = new(filePosition.x,transform.position.y,transform.position.z);
                                         transform.LookAt(posToLookAt);
-                                        print("I am looking at it as a melee");
                                         break;
                                 }
                             }
@@ -199,7 +195,6 @@ public class EnemyController : MonoBehaviour
     private void AttackObject(){
         if (canAttack){
             int randomNum = random.Next(0,attackAnimationNamesLen);
-            print(randomNum);
             attackAnimationName = attackAnimationNames[randomNum];
             anim.SetTrigger(attackAnimationName);
             switch(enemyType){
@@ -249,7 +244,6 @@ public class EnemyController : MonoBehaviour
             health -= 30;
         }
         if (health <= 0 && !isDead){
-            // StopAllCoroutines();
             anim.ResetTrigger(attackAnimationName);
             anim.SetTrigger("Death_trig");
             switch(enemyType){
@@ -272,24 +266,30 @@ public class EnemyController : MonoBehaviour
             }
             StartCoroutine(WaitForDeath());
         } else{
-            if (objectType == ObjectType.FILE){
-                if (other.gameObject.CompareTag("PlayerMelee") || other.gameObject.CompareTag("PlayerSword") || other.gameObject.CompareTag("PlayerHeavy")){
-                    if (objectToMoveTo.CompareTag("Point")){
-                        objectToMoveTo.transform.parent.gameObject.GetComponent<FileController>().MakePointAvailable(pointNum);
-                    } else{
-                        objectToMoveTo.GetComponent<FileController>().MakePointAvailable(pointNum);
-                    }
-                    objectToMoveTo = FindPlayerGameobject(other.gameObject);
-                    isAttackingObject = false;
-                    objectType = ObjectType.PLAYER;
-                    transform.LookAt(objectToMoveTo.transform.position);
-                    anim.SetTrigger("Run_trig");
-                    isMovingToObject = true;
+            if (objectType == ObjectType.FILE && 
+                (other.gameObject.CompareTag("PlayerMelee") || 
+                 other.gameObject.CompareTag("PlayerSword") || 
+                 other.gameObject.CompareTag("PlayerHeavy") || 
+                 other.gameObject.CompareTag("PlayerLaser"))){
+                GameObject player = gameObject;
+                if (other.gameObject.CompareTag("PlayerMelee") || 
+                    other.gameObject.CompareTag("PlayerSword") || 
+                    other.gameObject.CompareTag("PlayerHeavy")){
+                    player = FindPlayerGameobject(other.gameObject);
                 } else if (other.gameObject.CompareTag("PlayerLaser")){
-                    objectToMoveTo = other.gameObject.GetComponent<PlayerLaser>().GetParentGameobject();
+                    player = other.gameObject.GetComponent<PlayerLaser>().GetParentGameobject();
+                }
+                if (player.GetComponent<PlayerController>().CanPlayerBeAttacked()){
+                    if (objectToMoveTo.CompareTag("Point")){
+                            objectToMoveTo.transform.parent.gameObject.GetComponent<FileController>().MakePointAvailable(pointNum);
+                        } else{
+                            objectToMoveTo.GetComponent<FileController>().MakePointAvailable(pointNum);
+                    }
+                    objectToMoveTo = player;
                     isAttackingObject = false;
                     objectType = ObjectType.PLAYER;
                     transform.LookAt(objectToMoveTo.transform.position);
+                    anim.ResetTrigger(attackAnimationName);
                     anim.SetTrigger("Run_trig");
                     isMovingToObject = true;
                 }
@@ -305,6 +305,7 @@ public class EnemyController : MonoBehaviour
     }
 
     public void StopAttackingPlayer(GameObject player){
+        //TODO: Could remove player object check
         if (objectType == ObjectType.PLAYER){
             if (objectToMoveTo == player){
                 isAttackingObject = false;
@@ -314,8 +315,8 @@ public class EnemyController : MonoBehaviour
         }
     }
 
-    public GameObject GetPlayerToAttack(){
-        return playerToAttack;
+    public GameObject GetObjectOfInterest(){
+        return objectToMoveTo;
     }
 
     private void MoveTowardsPlayer(Vector3 locationToMoveTo){
@@ -334,7 +335,6 @@ public class EnemyController : MonoBehaviour
         canAttack = false;
         yield return new WaitForSeconds(attackCooldownTime);
         anim.ResetTrigger(attackAnimationName);
-        print($"I have now reset {attackAnimationName}");
         switch(enemyType){
             case EnemyType.MELEE:
                 meleeBoxColliders[attackAnimationName].enabled = false;

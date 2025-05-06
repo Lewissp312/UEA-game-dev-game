@@ -2,12 +2,14 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
+using UnityEditor.XR;
 using UnityEngine;
 using UnityEngine.AI;
 
 public class PlayerController : MonoBehaviour
 {
-    private bool isOverPlayer;
+    private bool isMousePosOverPlayer;
+    private bool isMousePosOnGround;
     private bool isMovingToPosition;
     private bool isPlayerClicked;
     private bool isLockedOntoEnemy;
@@ -34,7 +36,6 @@ public class PlayerController : MonoBehaviour
     private Renderer ringRenderer;
     private Vector3 mousePosition;
     private Vector3 positionToMoveTo;
-    private Vector3 lastGoodMousePos;
     private Vector3 laserPosition;
     private Vector3 laserHeight;
     private Vector3 enemyPositionForLaser;
@@ -78,9 +79,9 @@ public class PlayerController : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(0)){
             if (!isMovingToPosition){
-                mousePosition = GetMouseOnBoardPosition(out isOverPlayer);
+                mousePosition = GetMouseOnBoardPosition(out isMousePosOverPlayer, out isMousePosOnGround);
                 //if the player clicks the player character, handle the effects accordingly
-                if (isOverPlayer){
+                if (isMousePosOverPlayer || (isPlayerClicked && !isMousePosOnGround)){
                     isPlayerClicked = !isPlayerClicked;
                     if (selectedEffect.isPlaying){
                         selectedEffect.Clear();
@@ -88,12 +89,13 @@ public class PlayerController : MonoBehaviour
                     } else{
                         selectedEffect.Play();
                     }
-                } else if (isPlayerClicked){
+                } else if (isPlayerClicked && isMousePosOnGround){
                     positionToMoveTo = mousePosition;
                     isMovingToPosition = true;
                     isLockedOntoEnemy = false;
                     isMovingToEnemy = false;
                     canAttack = false;
+                    playerAnim.ResetTrigger(attackAnimationName);
                     playerAnim.SetTrigger("Run_trig");
                     isPlayerClicked = false;
                     selectedEffect.Clear();
@@ -149,14 +151,13 @@ public class PlayerController : MonoBehaviour
                     playerAnim.SetTrigger("Run_trig");
                 }
             }   
-        }
-        if (isMovingToPosition){
+        } else{
             if (Vector3.Distance(transform.position,positionToMoveTo) <= 0){
                 playerAgent.ResetPath();
                 isMovingToPosition = false;
                 playerAnim.ResetTrigger("Run_trig");
             }
-        }     
+        }
     }
 
     private void OnMouseOver(){
@@ -173,15 +174,17 @@ public class PlayerController : MonoBehaviour
     //Sword Health = 425
     //Heavy Health = 500
     private void OnTriggerEnter(Collider other){
-        if (other.gameObject.CompareTag("EnemyMelee") || 
-            other.gameObject.CompareTag("EnemyLaser") || 
-            other.gameObject.CompareTag("EnemySword") || 
-            other.gameObject.CompareTag("EnemyHeavy"))
+        GameObject enemyGameobject = other.gameObject;
+        if (enemyGameobject.CompareTag("EnemyMelee") || 
+            enemyGameobject.CompareTag("EnemyLaser") || 
+            enemyGameobject.CompareTag("EnemySword") || 
+            enemyGameobject.CompareTag("EnemyHeavy"))
         {
             gameManager.IncreaseEnemyPoints(1);
         }
-        if (other.gameObject.CompareTag("EnemyMelee")){
-            health -= 5; 
+        if (enemyGameobject.CompareTag("EnemyMelee")){
+            print($"{other.transform.parent.transform.parent.transform.parent.transform.parent.transform.parent.transform.parent.transform.parent.transform.parent.gameObject.GetComponent<EnemyController>().GetIsDead()}");
+            health -= 5;
         } else if(other.gameObject.CompareTag("EnemyLaser")){
             health -= 10;
         } else if(other.gameObject.CompareTag("EnemySword")){
@@ -226,47 +229,63 @@ public class PlayerController : MonoBehaviour
         enemyInfo.Remove(enemyID);
     }
 
+    public bool CanPlayerBeAttacked(){
+        int numofEnemiesAttackingPlayer = 0;
+        foreach(KeyValuePair<int, GameObject> enemy in enemyInfo){
+            if (enemy.Value.IsDestroyed() || enemy.Value.GetComponent<EnemyController>().GetIsDead()){
+                continue;
+            }
+            if (enemy.Value.GetComponent<EnemyController>().GetObjectOfInterest() == gameObject){
+                numofEnemiesAttackingPlayer++;
+                if (numofEnemiesAttackingPlayer >= 4){
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
 
 
-    private Vector3 GetMouseOnBoardPosition(out bool isOverPlayer){
+
+    private Vector3 GetMouseOnBoardPosition(out bool isMousePosOverPlayer, out bool isMousePosOnGround){
         //TODO: Change this so that more bad mouse positions are flagged up  
         Ray ray;
         ray =  Camera.main.ScreenPointToRay(Input.mousePosition);
         Vector3 playerPos = transform.position;
-        //If the ray hits a collider
-        if(Physics.Raycast(ray,out RaycastHit hitData)){
-            bool isFarEnough = Vector3.Distance(hitData.point, playerPos) > 1f;
-            if (!hitData.collider.gameObject.CompareTag("Player") && isFarEnough){
-                //needs to compare against all players to check that it didn't hit any
-                //however, this makes the collision true for all players if it hits a player
-
-                //The y position solution here which stops the player from going upwards would 
-                //need to be fixed if the multiple levels are introduced.
-                //The rigidbody use gravity function would probably help
-                lastGoodMousePos = new(hitData.point.x,playerPos.y,hitData.point.z);
-                isOverPlayer = false;
-                return lastGoodMousePos;
-            } else if (hitData.collider.gameObject == gameObject){
-                print($"Collided with {hitData.collider.gameObject}");
-                isOverPlayer = true;
-                return lastGoodMousePos;
-            } else{
-                isOverPlayer = false;
-                return lastGoodMousePos;
+        Vector3 mousePos = transform.position;
+        if(Physics.Raycast(ray,out RaycastHit hitData, 10000)){
+            //Hit the ground
+            //TODO: Add item point colliders here when done
+            GameObject hitObject = hitData.collider.gameObject;
+            if (hitObject.CompareTag("Ground") || hitObject.CompareTag("Enemy") || hitObject.CompareTag("AttackArea")){
+                mousePos = new(hitData.point.x,playerPos.y,hitData.point.z);
+                isMousePosOverPlayer = false;
+                isMousePosOnGround = true;
+                return mousePos;
+            //Hit the player with this script
+            } else if (hitObject == gameObject){
+                isMousePosOverPlayer = true;
+                isMousePosOnGround = false;
+                return mousePos;
+            //Hit something else
+            } else {
+                isMousePosOverPlayer = false;
+                isMousePosOnGround = false;
+                return mousePos;
             }
         } 
+        //Hit nothing
         else{
-            isOverPlayer = true;
-            return lastGoodMousePos;
+            isMousePosOverPlayer = false;
+            isMousePosOnGround = false;
+            return mousePos;
         }
     }
 
     private void AttackEnemy(){
         int randomNum = random.Next(0,attackAnimationNamesLen);
-        print(randomNum);
         attackAnimationName = attackAnimationNames[randomNum];
         playerAnim.SetTrigger(attackAnimationName);
-        print($"Now setting {attackAnimationName}");
         switch(playerType){
             case PlayerType.MELEE:
                 meleeBoxColliders[attackAnimationName].enabled = true;

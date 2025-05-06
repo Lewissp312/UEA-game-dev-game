@@ -24,6 +24,8 @@ TagManager:
   - EnemySword
   - EnemyHeavy
   - SpawnPoint
+  - Ground
+  - AttackArea
   layers:
   - Default
   - TransparentFX
@@ -33,8 +35,8 @@ TagManager:
   - UI
   - File
   - Wall
-  - 
-  - 
+  - Ground
+  - Player
   - 
   - 
   - 
