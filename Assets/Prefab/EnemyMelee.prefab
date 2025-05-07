@@ -577,7 +577,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   attackCooldownTime: 1.5
   moveSpeed: 0.03
-  health: 50
+  health: 20
   enemyType: 0
   playerClasses: []
   laser: {fileID: 0}

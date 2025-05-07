@@ -57,12 +57,12 @@ public class GameManager : MonoBehaviour
 
     public void IncreasePlayerPoints(int points){
         playerPoints+=points;
-        playerPointsText.text = $"Player Points: {playerPoints}";
+        playerPointsText.text = $"<color=yellow>Player Points: {playerPoints}</color>";
     }
 
     public void IncreaseEnemyPoints(int points){
         enemyPoints+=points;
-        enemyPointsText.text = $"Enemy Points: {enemyPoints}";
+        enemyPointsText.text = $"<color=purple>Enemy Points: {enemyPoints}</color>";
     }
 
 
