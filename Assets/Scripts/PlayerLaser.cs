@@ -8,7 +8,7 @@ public class PlayerLaser : MonoBehaviour
     private int speed;
     private Vector3 positionToAttack;
     private Vector3 fireDirection;
-    private GameObject parentGameObject;
+    private GameObject shooterGameObject;
     [SerializeField] private Material green;
     // Start is called before the first frame update
     void Start()
@@ -23,8 +23,8 @@ public class PlayerLaser : MonoBehaviour
         transform.position += fireDirection * Time.deltaTime;
     }
 
-    public GameObject GetParentGameobject(){
-        return parentGameObject;
+    public GameObject GetShooterGameObject(){
+        return shooterGameObject;
     }
 
     public void SetPositionToAttack(Vector3 positionToAttack){
@@ -36,7 +36,7 @@ public class PlayerLaser : MonoBehaviour
         GetComponent<MeshRenderer>().material = green;
     }
 
-    public void SetParentGameObject(GameObject parentGameObject){
-        this.parentGameObject = parentGameObject;
+    public void SetShooterGameObject(GameObject parentGameObject){
+        this.shooterGameObject = parentGameObject;
     }
 }

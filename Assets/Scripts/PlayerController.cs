@@ -5,6 +5,7 @@ using Unity.VisualScripting;
 using UnityEditor.XR;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.UIElements;
 
 public class PlayerController : MonoBehaviour
 {
@@ -14,10 +15,13 @@ public class PlayerController : MonoBehaviour
     private bool isPlayerClicked;
     private bool isLockedOntoEnemy;
     private bool isMovingToEnemy;
+    private bool isDead;
+    private bool isItemSquarePlayer;
     private bool canAttack;
     private enum PlayerType{MELEE,SWORD,HEAVY,GUN,ROCKET};
     private int enemyToAttackID;
     private int attackAnimationNamesLen;
+    private int maximumHealth;
     private float distanceAttackingEnemy;
     private string attackAnimationName;
     private readonly string[] attackAnimationNames = {"Attack_1_trig","Attack_2_trig","Attack_3_trig"};
@@ -42,18 +46,20 @@ public class PlayerController : MonoBehaviour
     private NavMeshAgent playerAgent;
     private System.Random random;
     [SerializeField] private float attackCooldownTime;
-    [SerializeField] private float playerSpeed;
     [SerializeField] private int health;
+    [SerializeField] private HealthBar healthBar;
     [SerializeField] private GameObject laser;
     [SerializeField] private PlayerType playerType;
     [SerializeField] private BoxCollider leftHand;
     [SerializeField] private BoxCollider rightHand;
     [SerializeField] private BoxCollider leftFoot;
+    [SerializeField] private Material blue;
     // Start is called before the first frame update
     void Start()
     {
         canAttack = true;
         attackAnimationNamesLen = attackAnimationNames.Length;
+        maximumHealth = health;
         playerAnim = GetComponent<Animator>();
         ringColor = new Color(0.96f,0.96f,0.51f,0.3f);
         ringColorTrans = new Color(0.96f,0.96f,0.51f,0f);
@@ -77,91 +83,87 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetMouseButtonDown(0)){
-            if (!isMovingToPosition){
-                mousePosition = GetMouseOnBoardPosition(out isMousePosOverPlayer, out isMousePosOnGround);
-                //if the player clicks the player character, handle the effects accordingly
-                if (isMousePosOverPlayer || (isPlayerClicked && !isMousePosOnGround)){
-                    isPlayerClicked = !isPlayerClicked;
-                    if (selectedEffect.isPlaying){
+        if (!isDead){
+            if (Input.GetMouseButtonDown(0) && !gameManager.GetIsMenuActive() && !isDead){
+                if (!isMovingToPosition){
+                    mousePosition = GetMouseOnBoardPosition(out isMousePosOverPlayer, out isMousePosOnGround);
+                    //if the player clicks the player character, handle the effects accordingly
+                    if (isMousePosOverPlayer || (isPlayerClicked && !isMousePosOnGround)){
+                        isPlayerClicked = !isPlayerClicked;
+                        if (selectedEffect.isPlaying){
+                            selectedEffect.Clear();
+                            selectedEffect.Stop();
+                        } else{
+                            selectedEffect.Play();
+                        }
+                    } else if (isPlayerClicked && isMousePosOnGround){
+                        positionToMoveTo = mousePosition;
+                        isMovingToPosition = true;
+                        isLockedOntoEnemy = false;
+                        isMovingToEnemy = false;
+                        canAttack = false;
+                        playerAnim.ResetTrigger(attackAnimationName);
+                        playerAnim.SetTrigger("Run_trig");
+                        isPlayerClicked = false;
                         selectedEffect.Clear();
                         selectedEffect.Stop();
-                    } else{
-                        selectedEffect.Play();
+                        playerAgent.SetDestination(positionToMoveTo);
                     }
-                } else if (isPlayerClicked && isMousePosOnGround){
-                    positionToMoveTo = mousePosition;
-                    isMovingToPosition = true;
-                    isLockedOntoEnemy = false;
-                    isMovingToEnemy = false;
-                    canAttack = false;
-                    playerAnim.ResetTrigger(attackAnimationName);
-                    playerAnim.SetTrigger("Run_trig");
-                    isPlayerClicked = false;
-                    selectedEffect.Clear();
-                    selectedEffect.Stop();
-                    playerAgent.SetDestination(positionToMoveTo);
                 }
             }
-        }
 
-        if (!isMovingToPosition){ 
-            if (isLockedOntoEnemy){
-                if (isMovingToEnemy){
-                    if (enemyToAttackScript.GetIsDead() || enemyToAttack.IsDestroyed()){
-                        canAttack = false;
-                        isMovingToEnemy = false;
-                        isLockedOntoEnemy = false;
-                        enemyInfo.Remove(enemyToAttackID);
-                    } else{
-                        playerAgent.SetDestination(enemyToAttack.transform.position);
-                        if (Vector3.Distance(transform.position,enemyToAttack.transform.position) <= distanceAttackingEnemy){
-                            playerAgent.ResetPath();
-                            isMovingToEnemy = false;
-                            playerAnim.ResetTrigger("Run_trig");
-                            canAttack = true;
+            if (!isMovingToPosition){ 
+                if (isLockedOntoEnemy){
+                    if (isMovingToEnemy){
+                        IsEnemyDeadCheck(out bool isEnemyDead);
+                        if (!isEnemyDead){
+                            playerAgent.SetDestination(enemyToAttack.transform.position);
+                            if (Vector3.Distance(transform.position,enemyToAttack.transform.position) <= distanceAttackingEnemy){
+                                playerAgent.ResetPath();
+                                isMovingToEnemy = false;
+                                playerAnim.ResetTrigger("Run_trig");
+                                canAttack = true;
+                            }
+                        }
+                    } else if(canAttack){
+                        IsEnemyDeadCheck(out bool isEnemyDead);
+                        if (!isEnemyDead){
+                            if(Vector3.Distance(transform.position,enemyToAttack.transform.position) > distanceAttackingEnemy){
+                                isMovingToEnemy = true;
+                                canAttack = false;
+                                playerAnim.SetTrigger("Run_trig");
+                            }
+                            if (canAttack){
+                                transform.LookAt(enemyToAttack.transform.position);
+                                AttackEnemy();
+                            }
                         }
                     }
-                } else if(canAttack){
-                    if (enemyToAttackScript.GetIsDead() || enemyToAttack.IsDestroyed()){
-                        canAttack = false;
-                        isMovingToEnemy = false;
-                        isLockedOntoEnemy = false;
-                        enemyInfo.Remove(enemyToAttackID);
-                    } else{
-                        if(Vector3.Distance(transform.position,enemyToAttack.transform.position) > distanceAttackingEnemy){
-                            isMovingToEnemy = true;
-                            canAttack = false;
-                            playerAnim.SetTrigger("Run_trig");
-                        }
-                        if (canAttack){
-                            transform.LookAt(enemyToAttack.transform.position);
-                            AttackEnemy();
-                        }
+                } else if (enemyInfo.Count > 0){
+                    enemyToAttack = GetClosestEnemy();
+                    //Enemy to attack is set to the player gameobject when there is no enemy to attack 
+                    if (enemyToAttack != gameObject){
+                        enemyToAttackScript = enemyToAttack.GetComponent<EnemyController>();
+                        enemyToAttackID = enemyToAttackScript.GetEnemyID();
+                        isLockedOntoEnemy = true;
+                        isMovingToEnemy = true;
+                        playerAnim.SetTrigger("Run_trig");
                     }
+                }   
+            } else{
+                if (Vector3.Distance(transform.position,positionToMoveTo) <= 0){
+                    playerAgent.ResetPath();
+                    isMovingToPosition = false;
+                    playerAnim.ResetTrigger("Run_trig");
                 }
-            } else if (enemyInfo.Count > 0){
-                enemyToAttack = GetClosestEnemy();
-                //Enemy to attack is set to the player gameobject when there is no enemy to attack 
-                if (enemyToAttack != gameObject){
-                    enemyToAttackScript = enemyToAttack.GetComponent<EnemyController>();
-                    enemyToAttackID = enemyToAttackScript.GetEnemyID();
-                    isLockedOntoEnemy = true;
-                    isMovingToEnemy = true;
-                    playerAnim.SetTrigger("Run_trig");
-                }
-            }   
-        } else{
-            if (Vector3.Distance(transform.position,positionToMoveTo) <= 0){
-                playerAgent.ResetPath();
-                isMovingToPosition = false;
-                playerAnim.ResetTrigger("Run_trig");
             }
         }
     }
 
     private void OnMouseOver(){
-        ringRenderer.material.color = ringColor;
+        if (!gameManager.GetIsMenuActive()){
+            ringRenderer.material.color = ringColor;
+        }
         //245,245,131,128
     }
 
@@ -169,29 +171,69 @@ public class PlayerController : MonoBehaviour
         ringRenderer.material.color = ringColorTrans;
     }
 
-    //Melee Health = 300
-    //Gun Health = 375
-    //Sword Health = 425
-    //Heavy Health = 500
     private void OnTriggerEnter(Collider other){
+        if (other.CompareTag("AttackEffectArea")){
+            print("Hit an enemy attack area");
+            ItemSpaceController itemSpaceScript = other.transform.parent.GetComponent<ItemSpaceController>();
+            if (itemSpaceScript.GetItemSpaceOwner() == GameManager.ItemSpaceOwner.ENEMY && 
+                itemSpaceScript.GetActiveItem() == GameManager.ItemSpaceItems.SLOWNESS){
+                GetComponent<NavMeshAgent>().speed -= 3;
+            }
+        }
         GameObject enemyGameobject = other.gameObject;
         if (enemyGameobject.CompareTag("EnemyMelee") || 
-            enemyGameobject.CompareTag("EnemyLaser") || 
-            enemyGameobject.CompareTag("EnemySword") || 
-            enemyGameobject.CompareTag("EnemyHeavy"))
+        enemyGameobject.CompareTag("EnemyLaser") || 
+        enemyGameobject.CompareTag("EnemySword") || 
+        enemyGameobject.CompareTag("EnemyHeavy"))
         {
             gameManager.IncreaseEnemyPoints(1);
         }
         if (enemyGameobject.CompareTag("EnemyMelee")){
-            print($"{other.transform.parent.transform.parent.transform.parent.transform.parent.transform.parent.transform.parent.transform.parent.transform.parent.gameObject.GetComponent<EnemyController>().GetIsDead()}");
             health -= 5;
-        } else if(other.gameObject.CompareTag("EnemyLaser")){
-            health -= 10;
-        } else if(other.gameObject.CompareTag("EnemySword")){
+            healthBar.UpdateHealth(health,maximumHealth);
+        } else if(enemyGameobject.CompareTag("EnemyLaser")){
+            GameObject shooterObject = enemyGameobject.GetComponent<PlayerLaser>().GetShooterGameObject();
+            if (!shooterObject.IsDestroyed()){
+                if (shooterObject.GetComponent<EnemyController>().GetIsItemSquareEnemy()){
+                    health -= 20;
+                } else{
+                    health -= 10;
+                }
+            } else{
+                health -= 10;
+            }
+            healthBar.UpdateHealth(health,maximumHealth);
+            Destroy(enemyGameobject);
+        } else if(enemyGameobject.CompareTag("EnemySword")){
             health -= 20;
-        } else if(other.gameObject.CompareTag("EnemyHeavy")){
+            healthBar.UpdateHealth(health,maximumHealth);
+        } else if(enemyGameobject.CompareTag("EnemyHeavy")){
             health -= 30;
-        //TODO: Put death proceedures here
+            healthBar.UpdateHealth(health,maximumHealth);
+        }
+        if (health <= 0 && !isDead){
+            DeathProcedure();
+        }
+    }
+
+    private void OnTriggerExit(Collider other){
+        if (other.CompareTag("AttackEffectArea")){
+            ItemSpaceController itemSpaceScript = other.transform.parent.GetComponent<ItemSpaceController>();
+            if (itemSpaceScript.GetItemSpaceOwner() == GameManager.ItemSpaceOwner.ENEMY && 
+                itemSpaceScript.GetActiveItem() == GameManager.ItemSpaceItems.SLOWNESS){
+                GetComponent<NavMeshAgent>().speed += 3;
+            }
+        }
+    }
+
+    private void OnCollisionEnter(Collision other){
+        if (other.gameObject.CompareTag("AttackEffectArea")){
+            // print("Hit an enemy attack area");
+            ItemSpaceController itemSpaceScript = other.transform.parent.GetComponent<ItemSpaceController>();
+            if (itemSpaceScript.GetItemSpaceOwner() == GameManager.ItemSpaceOwner.ENEMY && 
+                itemSpaceScript.GetActiveItem() == GameManager.ItemSpaceItems.SLOWNESS){
+                GetComponent<NavMeshAgent>().speed -= 3;
+            }
         }
     }
 
@@ -221,12 +263,25 @@ public class PlayerController : MonoBehaviour
         return lowestDistanceEnemy;
     }
 
+    public void DecreaseHealth(int healthToTakeAway){
+        health -= healthToTakeAway;
+        healthBar.UpdateHealth(health,maximumHealth);
+        if (health <= 0){
+            DeathProcedure();
+        }
+    }
+
     public void AddToEnemyList(int enemyID, GameObject enemy){
         enemyInfo.Add(enemyID,enemy);
     }
 
     public void RemoveFromEnemyList(int enemyID){
         enemyInfo.Remove(enemyID);
+    }
+
+    public void SetAsItemSquarePlayer(){
+        isItemSquarePlayer = true;
+        transform.GetChild(0).GetComponent<SkinnedMeshRenderer>().materials[0] = blue;
     }
 
     public bool CanPlayerBeAttacked(){
@@ -245,6 +300,14 @@ public class PlayerController : MonoBehaviour
         return true;
     }
 
+    public bool GetIsDead(){
+        return isDead;
+    }
+
+    public bool GetIsItemSquarePlayer(){
+        return isItemSquarePlayer;
+    }
+
 
 
     private Vector3 GetMouseOnBoardPosition(out bool isMousePosOverPlayer, out bool isMousePosOnGround){
@@ -257,7 +320,7 @@ public class PlayerController : MonoBehaviour
             //Hit the ground
             //TODO: Add item point colliders here when done
             GameObject hitObject = hitData.collider.gameObject;
-            if (hitObject.CompareTag("Ground") || hitObject.CompareTag("Enemy") || hitObject.CompareTag("AttackArea")){
+            if (hitObject.CompareTag("Ground") || hitObject.CompareTag("Enemy") || hitObject.CompareTag("AttackArea") || hitObject.CompareTag("AttackEffectArea")){
                 mousePos = new(hitData.point.x,playerPos.y,hitData.point.z);
                 isMousePosOverPlayer = false;
                 isMousePosOnGround = true;
@@ -309,11 +372,33 @@ public class PlayerController : MonoBehaviour
                 GameObject newLaser = Instantiate(laser,laserPosition,laserRotation);
                 PlayerLaser laserScript = newLaser.GetComponent<PlayerLaser>();
                 laserScript.SetPositionToAttack(enemyPositionForLaser);
-                laserScript.SetParentGameObject(gameObject);
+                laserScript.SetShooterGameObject(gameObject);
                 break;
         }
         StartCoroutine(AttackCooldown());
 
+    }
+
+    private void IsEnemyDeadCheck(out bool isEnemyDead){
+        if (enemyToAttackScript.GetIsDead() || enemyToAttack.IsDestroyed()){
+            canAttack = false;
+            isMovingToEnemy = false;
+            isLockedOntoEnemy = false;
+            enemyInfo.Remove(enemyToAttackID);
+            isEnemyDead = true;
+        } else{
+            isEnemyDead = false;
+        }
+    }
+
+    public void DeathProcedure(){
+        //TODO: Add removing players from player list in GameManager
+        isDead = true;
+        StopAllCoroutines();
+        playerAnim.ResetTrigger(attackAnimationName);
+        playerAnim.ResetTrigger("Run_trig");
+        playerAnim.SetTrigger("Death_trig");
+        StartCoroutine(WaitForDeath());
     }
 
     IEnumerator AttackCooldown(){
@@ -338,6 +423,11 @@ public class PlayerController : MonoBehaviour
         } else{
             canAttack = true;
         }
+    }
+
+    IEnumerator WaitForDeath(){
+        yield return new WaitForSeconds(1.5f);
+        Destroy(gameObject);
     }
 }
 

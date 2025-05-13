@@ -26,6 +26,9 @@ TagManager:
   - SpawnPoint
   - Ground
   - AttackArea
+  - AttackEffectArea
+  - ItemSpace
+  - HeavyHealth
   layers:
   - Default
   - TransparentFX
@@ -38,7 +41,7 @@ TagManager:
   - Ground
   - Player
   - PPLayer
-  - 
+  - Enemy
   - 
   - 
   - 

@@ -6,11 +6,15 @@ using UnityEngine.AI;
 
 public class FileController : MonoBehaviour
 {
+    private int maximumHealth;
     private GameManager gameManager;
     private Dictionary<string,bool> pointIsOccupiedDict;
-    private Dictionary<string,GameObject> pointPositionsDict; 
+    private Dictionary<string,GameObject> pointPositionsDict;
+    [SerializeField] private int health;
+    [SerializeField] private HealthBar healthBar; 
     void Start()
     {
+        maximumHealth = health;
         gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
         pointIsOccupiedDict = new Dictionary<string, bool>();
         pointPositionsDict = new Dictionary<string, GameObject>();
@@ -53,16 +57,31 @@ public class FileController : MonoBehaviour
         pointIsOccupiedDict[$"Point {pointNum}"] = false;
     }
 
+    // public void DecreaseHealth(int healthToTakeAway){
+    //     health -= healthToTakeAway;
+    //     healthBar.UpdateHealth(health,maximumHealth);
+    // }
+
+    //5,10,20,30
+
     private void OnTriggerEnter(Collider other){
         if (other.gameObject.CompareTag("EnemyMelee")){
             gameManager.IncreaseEnemyPoints(1);
+            health -= 5; 
+            healthBar.UpdateHealth(health,maximumHealth);
         } else if (other.gameObject.CompareTag("EnemyLaser")){
             gameManager.IncreaseEnemyPoints(2);
+            health -= 10; 
+            healthBar.UpdateHealth(health,maximumHealth);
             Destroy(other.gameObject);
         } else if (other.gameObject.CompareTag("EnemySword")){
             gameManager.IncreaseEnemyPoints(3);
+            health -= 20; 
+            healthBar.UpdateHealth(health,maximumHealth);
         } else if (other.gameObject.CompareTag("EnemyHeavy")){
             gameManager.IncreaseEnemyPoints(4);
+            health -= 30; 
+            healthBar.UpdateHealth(health,maximumHealth);
         }
     }
 }

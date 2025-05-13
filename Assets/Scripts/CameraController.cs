@@ -19,7 +19,6 @@ public class CameraController : MonoBehaviour
         {
             Vector3 originalPosition = transform.position;
             Vector3 delta = lastDragPosition - Input.mousePosition;
-            print(delta);
             transform.Translate(6f * Time.deltaTime * delta);
             lastDragPosition = Input.mousePosition;
             if (transform.position.x < 44 || transform.position.x > 185 || transform.position.z < 15 || transform.position.z > 86){
