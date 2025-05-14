@@ -173,7 +173,6 @@ public class PlayerController : MonoBehaviour
 
     private void OnTriggerEnter(Collider other){
         if (other.CompareTag("AttackEffectArea")){
-            print("Hit an enemy attack area");
             ItemSpaceController itemSpaceScript = other.transform.parent.GetComponent<ItemSpaceController>();
             if (itemSpaceScript.GetItemSpaceOwner() == GameManager.ItemSpaceOwner.ENEMY && 
                 itemSpaceScript.GetActiveItem() == GameManager.ItemSpaceItems.SLOWNESS){
@@ -192,7 +191,7 @@ public class PlayerController : MonoBehaviour
             health -= 5;
             healthBar.UpdateHealth(health,maximumHealth);
         } else if(enemyGameobject.CompareTag("EnemyLaser")){
-            GameObject shooterObject = enemyGameobject.GetComponent<PlayerLaser>().GetShooterGameObject();
+            GameObject shooterObject = enemyGameobject.GetComponent<LaserController>().GetShooterGameObject();
             if (!shooterObject.IsDestroyed()){
                 if (shooterObject.GetComponent<EnemyController>().GetIsItemSquareEnemy()){
                     health -= 20;
@@ -228,7 +227,6 @@ public class PlayerController : MonoBehaviour
 
     private void OnCollisionEnter(Collision other){
         if (other.gameObject.CompareTag("AttackEffectArea")){
-            // print("Hit an enemy attack area");
             ItemSpaceController itemSpaceScript = other.transform.parent.GetComponent<ItemSpaceController>();
             if (itemSpaceScript.GetItemSpaceOwner() == GameManager.ItemSpaceOwner.ENEMY && 
                 itemSpaceScript.GetActiveItem() == GameManager.ItemSpaceItems.SLOWNESS){
@@ -281,7 +279,7 @@ public class PlayerController : MonoBehaviour
 
     public void SetAsItemSquarePlayer(){
         isItemSquarePlayer = true;
-        transform.GetChild(0).GetComponent<SkinnedMeshRenderer>().materials[0] = blue;
+        transform.GetChild(0).GetComponent<SkinnedMeshRenderer>().materials = new Material[]{blue};
     }
 
     public bool CanPlayerBeAttacked(){
@@ -370,7 +368,7 @@ public class PlayerController : MonoBehaviour
                     enemyToAttack.transform.position.z
                 );
                 GameObject newLaser = Instantiate(laser,laserPosition,laserRotation);
-                PlayerLaser laserScript = newLaser.GetComponent<PlayerLaser>();
+                LaserController laserScript = newLaser.GetComponent<LaserController>();
                 laserScript.SetPositionToAttack(enemyPositionForLaser);
                 laserScript.SetShooterGameObject(gameObject);
                 break;
@@ -380,7 +378,7 @@ public class PlayerController : MonoBehaviour
     }
 
     private void IsEnemyDeadCheck(out bool isEnemyDead){
-        if (enemyToAttackScript.GetIsDead() || enemyToAttack.IsDestroyed()){
+        if (enemyToAttack.IsDestroyed() || enemyToAttackScript.GetIsDead()){
             canAttack = false;
             isMovingToEnemy = false;
             isLockedOntoEnemy = false;
@@ -395,6 +393,7 @@ public class PlayerController : MonoBehaviour
         //TODO: Add removing players from player list in GameManager
         isDead = true;
         StopAllCoroutines();
+        playerAgent.ResetPath();
         playerAnim.ResetTrigger(attackAnimationName);
         playerAnim.ResetTrigger("Run_trig");
         playerAnim.SetTrigger("Death_trig");

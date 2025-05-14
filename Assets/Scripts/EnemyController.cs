@@ -116,7 +116,6 @@ public class EnemyController : MonoBehaviour
                                         case 1 or 2 or 3 or 4 or 5 or 6 or 7 or 8 or 9 or 19 or 20 or 21 or 22 or 23 or 24 or 25 or 26 or 27:
                                             posToLookAt = new(transform.position.x,transform.position.y,filePosition.z);
                                             transform.LookAt(posToLookAt);
-                                            // print("I am looking at it as a melee");
                                             break;
                                         case 10 or 11 or 12 or 13 or 14 or 15 or 16 or 17 or 18 or 28 or 29 or 30 or 31 or 32 or 33 or 34 or 35 or 36:
                                             posToLookAt = new(filePosition.x,transform.position.y,transform.position.z);
@@ -232,7 +231,7 @@ public class EnemyController : MonoBehaviour
                         objectToMoveTo.transform.position.z
                     );
                     GameObject newLaser = Instantiate(laser,laserPosition,laserRotation);
-                    PlayerLaser laserScript = newLaser.GetComponent<PlayerLaser>();
+                    LaserController laserScript = newLaser.GetComponent<LaserController>();
                     laserScript.SetAsEnemyLaser();
                     laserScript.SetPositionToAttack(positionForLaser);
                     laserScript.SetShooterGameObject(gameObject);
@@ -256,20 +255,17 @@ public class EnemyController : MonoBehaviour
 
     public void SetAsItemSquareEnemy(){
         isItemSquareEnemy = true;
-        health += 20;
+        health += 100;
         maximumHealth = health;
-        transform.GetChild(0).GetComponent<SkinnedMeshRenderer>().materials[0] = green;
+        GetComponent<NavMeshAgent>().speed += 4;
+        transform.GetChild(0).GetComponent<SkinnedMeshRenderer>().materials = new Material[]{green};
     }
-
-    //Health subtractions, death check, move to object position
-
     public void OnTriggerEnter(Collider other){
         if (other.CompareTag("AttackEffectArea")){
             ItemSpaceController itemSpaceScript = other.transform.parent.GetComponent<ItemSpaceController>();
             if (itemSpaceScript.GetItemSpaceOwner() == GameManager.ItemSpaceOwner.PLAYER && 
                 itemSpaceScript.GetActiveItem() == GameManager.ItemSpaceItems.SLOWNESS){
                 GetComponent<NavMeshAgent>().speed -= 3;
-                print($"I have now entered the slowness field, my speed is {GetComponent<NavMeshAgent>().speed}");
             }
         } else{
             GameObject enemyGameObject = other.gameObject;
@@ -277,7 +273,7 @@ public class EnemyController : MonoBehaviour
                 health -= 5;
                 healthBar.UpdateHealth(health,maximumHealth);
             } else if(enemyGameObject.CompareTag("PlayerLaser")){
-                GameObject shooterObject = enemyGameObject.GetComponent<PlayerLaser>().GetShooterGameObject();
+                GameObject shooterObject = enemyGameObject.GetComponent<LaserController>().GetShooterGameObject();
                 if (!shooterObject.IsDestroyed()){
                     if (shooterObject.GetComponent<PlayerController>().GetIsItemSquarePlayer()){
                         health -= 20;
@@ -314,7 +310,7 @@ public class EnemyController : MonoBehaviour
                     enemyGameObject.CompareTag("PlayerHeavy")){
                         player = enemyGameObject.transform.root.gameObject;
                     } else if (enemyGameObject.CompareTag("PlayerLaser")){
-                        player = enemyGameObject.GetComponent<PlayerLaser>().GetShooterGameObject();
+                        player = enemyGameObject.GetComponent<LaserController>().GetShooterGameObject();
                     }
                     if (player.GetComponent<PlayerController>().CanPlayerBeAttacked()){
                         if (objectToMoveTo.CompareTag("Point")){
@@ -345,7 +341,6 @@ public class EnemyController : MonoBehaviour
             if (itemSpaceScript.GetItemSpaceOwner() == GameManager.ItemSpaceOwner.PLAYER && 
                 itemSpaceScript.GetActiveItem() == GameManager.ItemSpaceItems.SLOWNESS){
                 GetComponent<NavMeshAgent>().speed += 3;
-                print($"I have now left the slowness field, my speed is {GetComponent<NavMeshAgent>().speed}");
             }
         }
     }
@@ -383,10 +378,10 @@ public class EnemyController : MonoBehaviour
         if (objectToMoveTo.CompareTag("Point")){
             objectToMoveTo.transform.parent.gameObject.GetComponent<FileController>().MakePointAvailable(pointNum);
         } else if(objectToMoveTo.CompareTag("File")){
-            print($"Not a point: {objectToMoveTo}");
             objectToMoveTo.GetComponent<FileController>().MakePointAvailable(pointNum);
         }
         gameManager.RemoveFromActiveEnemies(enemyID);
+        enemyAgent.ResetPath();
         anim.ResetTrigger(attackAnimationName);
         anim.ResetTrigger("Run_trig");
         anim.SetTrigger("Death_trig");

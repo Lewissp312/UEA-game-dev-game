@@ -14,6 +14,7 @@ public class AttackEffectAreaController : MonoBehaviour
     private Vector3 worldCenter;
     private Vector3 worldHalfExtents;
     [SerializeField] private Material transparentGreen;
+    [SerializeField] private ParticleSystem burnEffect;
     // Start is called before the first frame update
     void Start()
     {
@@ -33,12 +34,6 @@ public class AttackEffectAreaController : MonoBehaviour
         worldCenter = boxCollider.transform.TransformPoint(boxCollider.center);
         worldHalfExtents = Vector3.Scale(boxCollider.size, boxCollider.transform.lossyScale) * 0.5f;
         switch(attackEffect){
-            case GameManager.ItemSpaceItems.SLOWNESS:
-                // Collider[] overlaps = Physics.OverlapBox(worldCenter, worldHalfExtents, boxCollider.transform.rotation,layerMask:colliderMask);
-                // foreach(Collider collider in overlaps){
-                //     collider.gameObject.GetComponent<NavMeshAgent>().speed -= 3;
-                // }
-                break;
             case GameManager.ItemSpaceItems.BURN:
                 canInflictBurnDamage = true;
                 StartCoroutine(WaitForBurnDamage());
@@ -55,7 +50,10 @@ public class AttackEffectAreaController : MonoBehaviour
                 case GameManager.ItemSpaceOwner.PLAYER:
                     foreach(Collider collider in overlaps){
                         EnemyController enemyScript = collider.gameObject.GetComponent<EnemyController>();
-                        if (!enemyScript.IsDestroyed() && !enemyScript.GetIsDead()){
+                        if (!collider.gameObject.IsDestroyed() && !enemyScript.GetIsDead()){
+                            ParticleSystem damageEffectCopy = Instantiate(burnEffect,collider.gameObject.transform.position,transform.rotation);
+                            damageEffectCopy.Play();
+                            Destroy(damageEffectCopy.gameObject,damageEffectCopy.main.duration);
                             enemyScript.DecreaseHealth(5);
                         }
                     }
@@ -64,6 +62,9 @@ public class AttackEffectAreaController : MonoBehaviour
                     foreach(Collider collider in overlaps){
                         PlayerController playerScript = collider.gameObject.GetComponent<PlayerController>();
                         if (!collider.gameObject.IsDestroyed() && !playerScript.GetIsDead()){
+                            ParticleSystem damageEffectCopy = Instantiate(burnEffect,collider.gameObject.transform.position,transform.rotation);
+                            damageEffectCopy.Play();
+                            Destroy(damageEffectCopy.gameObject,damageEffectCopy.main.duration);
                             playerScript.DecreaseHealth(5);
                         }
                     }
@@ -86,7 +87,7 @@ public class AttackEffectAreaController : MonoBehaviour
 
     IEnumerator WaitForBurnDamage(){
         canInflictBurnDamage = false;
-        yield return new WaitForSeconds(2);
+        yield return new WaitForSeconds(1);
         canInflictBurnDamage = true;
     }
 }

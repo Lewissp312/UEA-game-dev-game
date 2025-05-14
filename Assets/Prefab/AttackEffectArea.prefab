@@ -112,6 +112,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   transparentGreen: {fileID: 2100000, guid: e0aff98bafa254344aa4a6521d542766, type: 2}
+  burnEffect: {fileID: 952941922933328120, guid: e3883e508cd204463aef64c86cdc99f1, type: 3}
 --- !u!54 &-4450066018310071347
 Rigidbody:
   m_ObjectHideFlags: 0

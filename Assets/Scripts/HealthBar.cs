@@ -19,7 +19,6 @@ public class HealthBar : MonoBehaviour
         if (target.CompareTag("File")){
             offset = new Vector3(0,10,0);
         } else if(target.GetChild(0).CompareTag("HeavyHealth")){
-            print("Heavy health bar");
             offset = new Vector3(0,9,0);
         } else{
             offset = new Vector3(0,4,0);

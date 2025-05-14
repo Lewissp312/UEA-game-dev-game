@@ -3,7 +3,7 @@
 // using System.Numerics;
 using UnityEngine;
 
-public class PlayerLaser : MonoBehaviour
+public class LaserController : MonoBehaviour
 {
     private int speed;
     private Vector3 positionToAttack;

@@ -31,7 +31,6 @@ public class ItemSpaceController : MonoBehaviour
         gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
         renderer = GetComponent<MeshRenderer>();
         originalMaterial = renderer.material;
-        print(originalMaterial);
         spaceOwner = GameManager.ItemSpaceOwner.NONE;
         activeItem = GameManager.ItemSpaceItems.NONE;
     }
