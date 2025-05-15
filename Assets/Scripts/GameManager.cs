@@ -1,14 +1,13 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Threading;
 using TMPro;
 using Unity.VisualScripting;
-using UnityEditor;
 using UnityEngine;
-using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;
 
+/// <summary>
+/// Controls the game loop
+/// </summary>
 public class GameManager : MonoBehaviour
 {
     private bool isMenuActive;
@@ -41,7 +40,10 @@ public class GameManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI enemyPointsText;
     [SerializeField] private TextMeshProUGUI waveText;
     [SerializeField] private TextMeshProUGUI countdownTimer;
-    // Start is called before the first frame update
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//Unity methods
     void Start()
     {
         canSelectItemSpace = true;
@@ -54,16 +56,16 @@ public class GameManager : MonoBehaviour
         random = new System.Random();
         activeEnemies = new();
         filesToAttack = new GameObject[fileContainer.transform.childCount];
-        for (int i = 0; i < fileContainer.transform.childCount;i++){
+        for(int i = 0; i < fileContainer.transform.childCount; i++){
             filesToAttack[i] = fileContainer.transform.GetChild(i).gameObject;
         }
         itemSpaces = GameObject.FindGameObjectsWithTag("ItemSpace");
         itemSpacesLen = itemSpaces.Length;
-        spawnPoints = new GameObject[296];
+        spawnPoints = new GameObject[60];
         int numOfSpawnPoints = 0;
-        foreach (Transform child in transform)
+        foreach(Transform child in transform)
         {
-            if (child.CompareTag("SpawnPoint"))
+            if(child.CompareTag("SpawnPoint"))
             {
                 spawnPoints[numOfSpawnPoints] = child.gameObject;
                 numOfSpawnPoints++;
@@ -74,28 +76,39 @@ public class GameManager : MonoBehaviour
         waveText.text = $"Wave: {wave}";
     }
 
-    // Update is called once per frame
     void Update()
     {
-        if (isGameActive && !isBetweenWaves && canSelectItemSpace && enemyPoints >= 20){
+        if(isGameActive && !isBetweenWaves && canSelectItemSpace && enemyPoints >= 20){
             for(int i = 0; i<itemSpacesLen; i++){
                 GameObject chosenItemSpace = itemSpaces[random.Next(itemSpacesLen)];
                 ItemSpaceController itemSpaceScript = chosenItemSpace.GetComponent<ItemSpaceController>();
-                if (itemSpaceScript.GetItemSpaceOwner() == ItemSpaceOwner.NONE){
+                if(itemSpaceScript.GetItemSpaceOwner() == ItemSpaceOwner.NONE){
                     itemSpaceScript.SetItemSpaceOwner(ItemSpaceOwner.ENEMY);
-                    if (enemyPoints < 30){
+                    if(enemyPoints < 30){ //Gun (20 points)
+                        //This is the only item that can be afforded with less than 30 points
                         itemSpaceScript.InstantiateItem(ItemSpaceItems.GUN);
                     } else{
-                        //Initialisation needed here, using this default value is impossible
+                        //Using this default initialsation value is impossible
                         ItemSpaceItems itemChoice = ItemSpaceItems.SLOWNESS;
-                        if(enemyPoints < 50){ //Gun (20 points) and slowness area (30 points)
+                        if(enemyPoints < 50){ //Slowness area (30 points)
                             ItemSpaceItems[] itemChoices = {ItemSpaceItems.SLOWNESS,ItemSpaceItems.GUN};
                             itemChoice = itemChoices[random.Next(itemChoices.Length)];
-                        } else if (enemyPoints > 50){
+                        } else if(enemyPoints > 50){ //Burn area (50 points)
                             ItemSpaceItems[] itemChoices = {ItemSpaceItems.BURN,ItemSpaceItems.SLOWNESS,ItemSpaceItems.GUN};
                             itemChoice = itemChoices[random.Next(itemChoices.Length)];
                         }
                         itemSpaceScript.InstantiateItem(itemChoice);
+                        switch(itemChoice){
+                            case ItemSpaceItems.GUN:
+                                DecreaseEnemyPoints(20);
+                                break;
+                            case ItemSpaceItems.SLOWNESS:
+                                DecreaseEnemyPoints(30);
+                                break;
+                            case ItemSpaceItems.BURN:
+                                DecreaseEnemyPoints(50);
+                                break;
+                        }
                     }
                     break;
                 }
@@ -103,76 +116,15 @@ public class GameManager : MonoBehaviour
             canSelectItemSpace = false;
             StartCoroutine(WaitForItemSpaceSelection());
         }
-
-
     }
 
-    public int GetEnemyID(){
-        return enemyID;
-    }
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public int GetPlayerPoints(){
-        return playerPoints;
-    }
+//Public class methods
 
-    public bool GetIsGameActive(){
-        return isGameActive;
-    }
-
-    public bool GetIsMenuActive(){
-        return isMenuActive; 
-    }
-
-    public GameObject[] GetFilesToAttack(){
-        return filesToAttack;
-    }
-
-    public void StartGame(){
-        isGameActive = true;
-        startMenu.SetActive(false);
-        StartCoroutine(WaveLoop());
-    }
-
-    private void SpawnWave(){
-        int numOfSpawns = 20;
-        int rangeOfEnemies = enemiesLen;
-        switch(wave){
-            case 1:
-                numOfSpawns = 20;
-                rangeOfEnemies = 2;
-                break;
-            case 2:
-                numOfSpawns = 40;
-                rangeOfEnemies = enemiesLen;
-                break;
-            case 3:
-                numOfSpawns = 60;
-                rangeOfEnemies = enemiesLen;
-                break;
-        }
-        int numOfHeavies = 0;
-        int numOfSwords = 0;
-        for(int i = 0; i < numOfSpawns; i++){
-            GameObject selectedSpawnPoint = spawnPoints[i];
-            GameObject selectedEnemy = enemies[random.Next(rangeOfEnemies)];
-            if (selectedEnemy.transform.GetChild(0).CompareTag("Heavy")){
-                if (numOfHeavies != 5){
-                    numOfHeavies++;
-                } else{
-                    selectedEnemy = enemies[random.Next(2)];
-                }
-            } else if (selectedEnemy.transform.GetChild(0).CompareTag("Sword")){
-                if (numOfSwords != 15){
-                    numOfSwords++;
-                } else{
-                    selectedEnemy = enemies[random.Next(2)];
-                }
-            }
-            selectedSpawnPoint.GetComponent<ParticleSystem>().Play();
-            Instantiate(selectedEnemy,selectedSpawnPoint.transform.position,selectedEnemy.transform.rotation);
-        }
-    }
-
+/// <summary>
+/// Starts the procedures for a game over, depending on what caused it
+/// </summary>
     public void GameOver(GameOverCause gameOverCause){
         isGameActive = false;
         StopAllCoroutines();
@@ -182,7 +134,7 @@ public class GameManager : MonoBehaviour
                 gameOverMenu.transform.GetChild(0).GetChild(0).gameObject.GetComponent<TextMeshProUGUI>().text = "Files defended! Congratulations!";
                 foreach(GameObject player in players){
                     if(!player.IsDestroyed()){
-                        if (!player.GetComponent<PlayerController>().GetIsDead()){
+                        if(!player.GetComponent<PlayerController>().GetIsDead()){
                             player.GetComponent<PlayerController>().GameOverProcedure();
                         }
                     }
@@ -226,9 +178,11 @@ public class GameManager : MonoBehaviour
 
     public void RemoveFromActiveEnemies(int enemyID){
         activeEnemies.Remove(enemyID);
-        if (activeEnemies.Count <= 0){
+        if(activeEnemies.Count <= 0){
+            //Miniwaves make up a larger wave, there are two for each wave  
             switch(miniWave){
                 case 1:
+                    //Sets the seconds left to 0 to make the next miniwave start now
                     secondsLeft = 0;
                     break;
                 case 2:
@@ -254,7 +208,7 @@ public class GameManager : MonoBehaviour
                 numOfDeadPlayers++;
             }
         }
-        if (numOfDeadPlayers == playersLen){
+        if(numOfDeadPlayers == playersLen){
             GameOver(GameOverCause.PLAYERSDEAD);
         }
     }
@@ -281,9 +235,91 @@ public class GameManager : MonoBehaviour
         enemyPointsText.text = $"<color=purple>Enemy Points: {enemyPoints}</color>";
     }
 
+    public void DecreaseEnemyPoints(int pointsToSubtract){
+        enemyPoints -= pointsToSubtract;
+        enemyPointsText.text = $"<color=purple>Enemy Points: {enemyPoints}</color>";
+    }
+
     public void ResetGame(){
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
+
+    public void StartGame(){
+        isGameActive = true;
+        startMenu.SetActive(false);
+        StartCoroutine(WaveLoop());
+    }
+
+    public int GetEnemyID(){
+        return enemyID;
+    }
+
+    public int GetPlayerPoints(){
+        return playerPoints;
+    }
+
+    public bool GetIsGameActive(){
+        return isGameActive;
+    }
+
+    public bool GetIsMenuActive(){
+        return isMenuActive; 
+    }
+
+    public GameObject[] GetFilesToAttack(){
+        return filesToAttack;
+    }
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//Private class methods
+
+    private void SpawnWave(){
+        int numOfSpawns = 20;
+        int rangeOfEnemies = enemiesLen;
+        switch(wave){
+            case 1:
+                numOfSpawns = 20;
+                //For the first wave, only melee and gun enemies are spawned
+                rangeOfEnemies = 2;
+                break;
+            case 2:
+                numOfSpawns = 40;
+                rangeOfEnemies = enemiesLen;
+                break;
+            case 3:
+                numOfSpawns = 60;
+                rangeOfEnemies = enemiesLen;
+                break;
+        }
+        int numOfHeavies = 0;
+        int numOfSwords = 0;
+        for(int i = 0; i < numOfSpawns; i++){
+            GameObject selectedSpawnPoint = spawnPoints[i];
+            GameObject selectedEnemy = enemies[random.Next(rangeOfEnemies)];
+            if(selectedEnemy.transform.GetChild(0).CompareTag("Heavy")){
+                //Limits the number of heavies and sword enemies, as too many can make the game chaotic
+                if(numOfHeavies != 5){
+                    numOfHeavies++;
+                } else{
+                    selectedEnemy = enemies[random.Next(2)];
+                }
+            } else if(selectedEnemy.transform.GetChild(0).CompareTag("Sword")){
+                if(numOfSwords != 15){
+                    numOfSwords++;
+                } else{
+                    selectedEnemy = enemies[random.Next(2)];
+                }
+            }
+            //Lets the player know which spawn points are active
+            selectedSpawnPoint.GetComponent<ParticleSystem>().Play();
+            Instantiate(selectedEnemy,selectedSpawnPoint.transform.position,selectedEnemy.transform.rotation);
+        }
+    }
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//IEnumerators
 
     IEnumerator WaitForItemSpaceSelection(){
         yield return new WaitForSeconds(10);
@@ -307,7 +343,8 @@ public class GameManager : MonoBehaviour
             countdownTimer.text = $"Time Left: {secondsLeft}";
             secondsLeft--;
             yield return new WaitForSeconds(1);
-            if (secondsLeft <= 0){
+            //This check is here as secondsLeft can be set to 0 by other functions
+            if(secondsLeft <= 0){
                 countdownTimer.transform.parent.gameObject.SetActive(false);
                 break;
             }

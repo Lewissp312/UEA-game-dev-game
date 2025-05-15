@@ -507,11 +507,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bdadbced6a45042ef8fbde64b516257f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  attackCooldownTime: 4
   health: 30
+  attackCooldownTime: 4
+  players:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
   healthBar: {fileID: 7050465945557697398}
   enemyType: 2
-  playerClasses: []
   laser: {fileID: 0}
   rightHand: {fileID: 8250503268584915513}
   leftHand: {fileID: 980652736833941590}

@@ -2,10 +2,17 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Controls the right click scrolling camera
+/// </summary>
 public class CameraController : MonoBehaviour
 {
     private Vector3 lastDragPosition;
     private GameManager gameManager;
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//Unity methods
 
     void Start(){
         gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
@@ -13,11 +20,8 @@ public class CameraController : MonoBehaviour
     void LateUpdate()
     {
         if (gameManager.GetIsGameActive()){
-            //Any less than Z 15 is bad
-            //Any more than 79 is bad
-            //Any less than X 36 is bad
-            //Any more than X 163 is bad 
             //Code adapted from https://stackoverflow.com/questions/45921780/adding-camera-drag-in-unity-3d
+            //Right click
             if (Input.GetMouseButtonDown(1))
                 lastDragPosition = Input.mousePosition;
             if (Input.GetMouseButton(1))

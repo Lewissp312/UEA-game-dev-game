@@ -4,9 +4,14 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
 
+/// <summary>
+/// Controls the behaviour for the areas spawned by item squares, such as slowness and burn areas.
+/// </summary>
+
 public class AttackEffectAreaController : MonoBehaviour
 {
     private bool canInflictBurnDamage;
+    private GameManager gameManager;
     private GameManager.ItemSpaceItems attackEffect;
     private ItemSpaceController itemSpaceScript;
     private BoxCollider boxCollider;
@@ -15,9 +20,13 @@ public class AttackEffectAreaController : MonoBehaviour
     private Vector3 worldHalfExtents;
     [SerializeField] private Material transparentGreen;
     [SerializeField] private ParticleSystem burnEffect;
-    // Start is called before the first frame update
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//Unity methods
     void Start()
     {
+        gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
         itemSpaceScript = transform.parent.gameObject.GetComponent<ItemSpaceController>();
         attackEffect = itemSpaceScript.GetActiveItem();
         switch(itemSpaceScript.GetItemSpaceOwner()){
@@ -33,42 +42,39 @@ public class AttackEffectAreaController : MonoBehaviour
         boxCollider = GetComponent<BoxCollider>();
         worldCenter = boxCollider.transform.TransformPoint(boxCollider.center);
         worldHalfExtents = Vector3.Scale(boxCollider.size, boxCollider.transform.lossyScale) * 0.5f;
-        switch(attackEffect){
-            case GameManager.ItemSpaceItems.BURN:
-                canInflictBurnDamage = true;
-                StartCoroutine(WaitForBurnDamage());
-                break;
+        if (attackEffect == GameManager.ItemSpaceItems.BURN){
+            canInflictBurnDamage = true;
+            StartCoroutine(WaitForBurnDamage());
         }
     }
 
-    // Update is called once per frame
     void Update()
     {
-        if (canInflictBurnDamage){
+        if (canInflictBurnDamage && gameManager.GetIsGameActive()){
             Collider[] overlaps = Physics.OverlapBox(worldCenter, worldHalfExtents, boxCollider.transform.rotation,layerMask:colliderMask);
             switch(itemSpaceScript.GetItemSpaceOwner()){
                 case GameManager.ItemSpaceOwner.PLAYER:
                     foreach(Collider collider in overlaps){
-                        // EnemyController enemyScript = collider.gameObject.GetComponent<EnemyController>();
                         if (!collider.gameObject.IsDestroyed()){
-                            if (!collider.gameObject.GetComponent<EnemyController>().GetIsDead()){
+                            EnemyController enemyScript = collider.gameObject.GetComponent<EnemyController>();
+                            if (!enemyScript.GetIsDead()){
                                 ParticleSystem damageEffectCopy = Instantiate(burnEffect,collider.gameObject.transform.position,transform.rotation);
                                 damageEffectCopy.Play();
                                 Destroy(damageEffectCopy.gameObject,damageEffectCopy.main.duration);
-                                collider.gameObject.GetComponent<EnemyController>().DecreaseHealth(8);
+                                enemyScript.DecreaseHealth(8);
                             }
                         }
                     }
                     break;
                 case GameManager.ItemSpaceOwner.ENEMY:
                     foreach(Collider collider in overlaps){
-                        // PlayerController playerScript = collider.gameObject.GetComponent<PlayerController>();
                         if (!collider.gameObject.IsDestroyed()){
-                            if (collider.gameObject.GetComponent<PlayerController>().GetIsDead()){
+                            PlayerController playerScript = collider.gameObject.GetComponent<PlayerController>();
+                            if (playerScript.GetIsDead()){
                                 ParticleSystem damageEffectCopy = Instantiate(burnEffect,collider.gameObject.transform.position,transform.rotation);
                                 damageEffectCopy.Play();
                                 Destroy(damageEffectCopy.gameObject,damageEffectCopy.main.duration);
-                                collider.gameObject.GetComponent<PlayerController>().DecreaseHealth(8);
+                                playerScript.DecreaseHealth(8);
                             }
                         }
                     }
@@ -80,6 +86,15 @@ public class AttackEffectAreaController : MonoBehaviour
 
     }
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//Public class methods
+
+
+/// <summary>
+/// Method that is to be executed whenever an attack effect area is destroyed.
+/// OnDestroy() is not used here as it would not execute in time
+/// </summary>
     public void DestroyProcedure(){
         if (itemSpaceScript.GetActiveItem() == GameManager.ItemSpaceItems.SLOWNESS){
             Collider[] overlaps = Physics.OverlapBox(worldCenter, worldHalfExtents, boxCollider.transform.rotation,layerMask:colliderMask);
@@ -88,6 +103,10 @@ public class AttackEffectAreaController : MonoBehaviour
             }
         }
     }
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//IEnumerators
 
     IEnumerator WaitForBurnDamage(){
         canInflictBurnDamage = false;

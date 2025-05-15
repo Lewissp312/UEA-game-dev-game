@@ -1,20 +1,17 @@
-using System.Collections;
-using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
+
+/// <summary>
+/// Controls the behaviour for the yellow areas around players. This area handles keeping track of enemies near the player
+/// </summary>
 public class AttackArea : MonoBehaviour
 {
     private PlayerController parentScript;
-    // Start is called before the first frame update
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//Unity methods
     void Start()
     {
         parentScript = transform.parent.gameObject.GetComponent<PlayerController>();
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-
     }
 
     void OnCollisionEnter(Collision collision)

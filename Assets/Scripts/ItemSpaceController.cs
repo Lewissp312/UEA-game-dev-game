@@ -1,18 +1,12 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Diagnostics;
-using JetBrains.Annotations;
 using Unity.VisualScripting;
-using UnityEditor.Animations;
 using UnityEngine;
-using UnityEngine.UIElements;
 
+/// <summary>
+/// Controls behaviour for item spaces
+/// </summary>
 public class ItemSpaceController : MonoBehaviour
 {
-    // public enum AttackEffects{SLOWNESS,BURN};
-    // public enum SpaceOwner{PLAYER,ENEMY};
-    // private bool isSpaceActive;
     private bool isClicked;
     private GameObject playerOrEnemy;
     private GameManager gameManager;
@@ -25,7 +19,10 @@ public class ItemSpaceController : MonoBehaviour
     [SerializeField] private GameObject[] players;
     [SerializeField] private GameObject[] enemies;
     [SerializeField] private Material neonGreen;
-    // Start is called before the first frame update
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//Unity methods
     void Start()
     {
         gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
@@ -35,9 +32,9 @@ public class ItemSpaceController : MonoBehaviour
         activeItem = GameManager.ItemSpaceItems.NONE;
     }
 
-    // Update is called once per frame
     void Update()
     {
+        //Right click
         if (spaceOwner == GameManager.ItemSpaceOwner.NONE && 
             Input.GetMouseButtonDown(1) && 
             !gameManager.GetIsMenuActive() && 
@@ -49,40 +46,14 @@ public class ItemSpaceController : MonoBehaviour
         }
     }
 
-    private bool HasPlayerClickedOnSpace(){
-        Ray ray;
-        RaycastHit[] hits;
-        ray =  Camera.main.ScreenPointToRay(Input.mousePosition);
-        //Raycast all as it needs to go through the player attack areas
-        hits = Physics.RaycastAll(ray:ray,maxDistance:100);
-        foreach (RaycastHit hit in hits){
-            if(hit.transform.gameObject == gameObject){
-                return true;
-            }
-        }
-        return false;
-    }
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public GameManager.ItemSpaceOwner GetItemSpaceOwner(){
-        return spaceOwner;
-    }
-
-    public void SetItemSpaceOwner(GameManager.ItemSpaceOwner spaceOwner){
-        this.spaceOwner = spaceOwner;
-        if (this.spaceOwner == GameManager.ItemSpaceOwner.ENEMY){
-            renderer.material = neonGreen;  
-        }
-    }
-
-    public GameManager.ItemSpaceItems GetActiveItem(){
-        return activeItem;
-    }
-
+//Public class methods
     public void HandleMenuInput(int menuChoice){
-        //"isClicked" is needed here as all cubes have this function triggered whenever one of them is clicked
+        //"isClicked" is needed here as all item squares have this function triggered whenever one of them is clicked
         if (isClicked){
             switch(menuChoice){
-                case 0: //Burn Area, costs 50 points
+                case 0: //Burn Area (50 points)
                     if (gameManager.GetPlayerPoints() - 50 < 0){
                         //Display the "Not enough points!" message
                         menuOptions.transform.GetChild(5).gameObject.SetActive(true);
@@ -96,9 +67,8 @@ public class ItemSpaceController : MonoBehaviour
                         menuOptions.transform.GetChild(5).gameObject.SetActive(false);
                     }
                     break;
-                case 1: //Slowness Area, 30 points
+                case 1: //Slowness Area (30 points)
                     if (gameManager.GetPlayerPoints() - 30 < 0){
-                        //Display the "Not enough points!" message
                         menuOptions.transform.GetChild(5).gameObject.SetActive(true);
                         StartCoroutine(WaitForNoPointsNotification());
                     } else{
@@ -110,7 +80,7 @@ public class ItemSpaceController : MonoBehaviour
                         menuOptions.transform.GetChild(5).gameObject.SetActive(false);
                     }
                     break;
-                case 2: //Player Gun, 20 points
+                case 2: //Player Gun (20 points)
                     if (gameManager.GetPlayerPoints() - 20 < 0){
                             menuOptions.transform.GetChild(5).gameObject.SetActive(true);
                             StartCoroutine(WaitForNoPointsNotification());
@@ -136,7 +106,6 @@ public class ItemSpaceController : MonoBehaviour
 
     public void InstantiateItem(GameManager.ItemSpaceItems item){
         activeItem = item;
-        //By this point, the enemy would have already set their spaceowner type
         switch(item){
             case GameManager.ItemSpaceItems.SLOWNESS or GameManager.ItemSpaceItems.BURN:
                 Instantiate(attackEffectArea,new Vector3(transform.position.x,transform.position.y + 1,transform.position.z),attackEffectArea.transform.rotation,parent:transform);
@@ -158,6 +127,43 @@ public class ItemSpaceController : MonoBehaviour
                 break;
         }
     }
+
+    public void SetItemSpaceOwner(GameManager.ItemSpaceOwner spaceOwner){
+        this.spaceOwner = spaceOwner;
+        if (this.spaceOwner == GameManager.ItemSpaceOwner.ENEMY){
+            renderer.material = neonGreen;  
+        }
+    }
+
+    public GameManager.ItemSpaceOwner GetItemSpaceOwner(){
+        return spaceOwner;
+    }
+
+    public GameManager.ItemSpaceItems GetActiveItem(){
+        return activeItem;
+    }
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//Private class methods
+
+    private bool HasPlayerClickedOnSpace(){
+        Ray ray;
+        RaycastHit[] hits;
+        ray =  Camera.main.ScreenPointToRay(Input.mousePosition);
+        //Raycast all as it needs to go through the player attack areas
+        hits = Physics.RaycastAll(ray:ray,maxDistance:100);
+        foreach(RaycastHit hit in hits){
+            if(hit.transform.gameObject == gameObject){
+                return true;
+            }
+        }
+        return false;
+    }
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//IEnumerators
 
     IEnumerator WaitForNoPointsNotification(){
         yield return new WaitForSeconds(2);

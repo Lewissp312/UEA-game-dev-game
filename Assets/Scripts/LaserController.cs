@@ -1,8 +1,8 @@
-// using System.Collections;
-// using System.Collections.Generic;
-// using System.Numerics;
 using UnityEngine;
 
+/// <summary>
+/// Controls behaviour for lasers
+/// </summary>
 public class LaserController : MonoBehaviour
 {
     private int speed;
@@ -10,22 +10,24 @@ public class LaserController : MonoBehaviour
     private Vector3 fireDirection;
     private GameObject shooterGameObject;
     [SerializeField] private Material green;
-    // Start is called before the first frame update
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//Unity methods
     void Start()
     {
         speed = 40;
         fireDirection = (positionToAttack - transform.position).normalized * speed;
     }
 
-    // Update is called once per frame
     void Update()
     {
         transform.position += fireDirection * Time.deltaTime;
     }
 
-    public GameObject GetShooterGameObject(){
-        return shooterGameObject;
-    }
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//Public class methods
 
     public void SetPositionToAttack(Vector3 positionToAttack){
         this.positionToAttack = positionToAttack;
@@ -36,7 +38,11 @@ public class LaserController : MonoBehaviour
         GetComponent<MeshRenderer>().material = green;
     }
 
-    public void SetShooterGameObject(GameObject parentGameObject){
-        this.shooterGameObject = parentGameObject;
+    public void SetShooterGameObject(GameObject shooterGameObject){
+        this.shooterGameObject = shooterGameObject;
+    }
+
+    public GameObject GetShooterGameObject(){
+        return shooterGameObject;
     }
 }
