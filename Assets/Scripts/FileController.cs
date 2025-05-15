@@ -83,5 +83,8 @@ public class FileController : MonoBehaviour
             health -= 30; 
             healthBar.UpdateHealth(health,maximumHealth);
         }
+        if (health <= 0){
+            gameManager.GameOver(GameManager.GameOverCause.FILEDESTROYED);
+        }
     }
 }

@@ -108,7 +108,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   attackCooldownTime: 2
-  health: 20
+  health: 10
   healthBar: {fileID: 3808810223554499812}
   enemyType: 3
   playerClasses: []

@@ -4992,7 +4992,7 @@ NavMeshAgent:
   m_Enabled: 1
   m_AgentTypeID: 0
   m_Radius: 1
-  m_Speed: 12
+  m_Speed: 16
   m_Acceleration: 200
   avoidancePriority: 50
   m_AngularSpeed: 600
@@ -5252,7 +5252,7 @@ GameObject:
   - component: {fileID: 3085294303607225534}
   m_Layer: 0
   m_Name: MeleePlayer
-  m_TagString: Untagged
+  m_TagString: Sword
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

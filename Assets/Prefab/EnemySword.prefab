@@ -114,7 +114,7 @@ NavMeshAgent:
   m_Enabled: 1
   m_AgentTypeID: 0
   m_Radius: 0.2
-  m_Speed: 5
+  m_Speed: 4
   m_Acceleration: 200
   avoidancePriority: 50
   m_AngularSpeed: 600
@@ -139,7 +139,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   attackCooldownTime: 2
-  health: 30
+  health: 20
   healthBar: {fileID: 5063950208238827676}
   enemyType: 1
   playerClasses: []

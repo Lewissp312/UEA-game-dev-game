@@ -18,7 +18,7 @@ public class HealthBar : MonoBehaviour
         camera = Camera.main;
         if (target.CompareTag("File")){
             offset = new Vector3(0,10,0);
-        } else if(target.GetChild(0).CompareTag("HeavyHealth")){
+        } else if(target.GetChild(0).CompareTag("Heavy")){
             offset = new Vector3(0,9,0);
         } else{
             offset = new Vector3(0,4,0);

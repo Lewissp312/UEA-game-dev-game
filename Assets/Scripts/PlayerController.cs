@@ -83,8 +83,8 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (!isDead){
-            if (Input.GetMouseButtonDown(0) && !gameManager.GetIsMenuActive() && !isDead){
+        if (!isDead && gameManager.GetIsGameActive()){
+            if (Input.GetMouseButtonDown(0) && gameManager.GetIsGameActive() && !gameManager.GetIsMenuActive() && !isDead){
                 if (!isMovingToPosition){
                     mousePosition = GetMouseOnBoardPosition(out isMousePosOverPlayer, out isMousePosOnGround);
                     //if the player clicks the player character, handle the effects accordingly
@@ -161,14 +161,16 @@ public class PlayerController : MonoBehaviour
     }
 
     private void OnMouseOver(){
-        if (!gameManager.GetIsMenuActive()){
+        if (gameManager.GetIsGameActive() && !gameManager.GetIsMenuActive()){
             ringRenderer.material.color = ringColor;
         }
         //245,245,131,128
     }
 
     private void OnMouseExit(){
-        ringRenderer.material.color = ringColorTrans;
+        if(gameManager.GetIsGameActive()){
+            ringRenderer.material.color = ringColorTrans;
+        } 
     }
 
     private void OnTriggerEnter(Collider other){
@@ -390,14 +392,21 @@ public class PlayerController : MonoBehaviour
     }
 
     public void DeathProcedure(){
-        //TODO: Add removing players from player list in GameManager
-        isDead = true;
         StopAllCoroutines();
+        isDead = true;
         playerAgent.ResetPath();
         playerAnim.ResetTrigger(attackAnimationName);
         playerAnim.ResetTrigger("Run_trig");
         playerAnim.SetTrigger("Death_trig");
         StartCoroutine(WaitForDeath());
+        gameManager.CheckIfAllPlayersAreDead();
+    }
+
+    public void GameOverProcedure(){
+        StopAllCoroutines();
+        playerAgent.ResetPath();
+        playerAnim.ResetTrigger(attackAnimationName);
+        playerAnim.ResetTrigger("Run_trig");
     }
 
     IEnumerator AttackCooldown(){

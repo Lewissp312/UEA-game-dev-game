@@ -1,18 +1,30 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 using TMPro;
 using Unity.VisualScripting;
+using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering.PostProcessing;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
     private bool isMenuActive;
+    private bool isGameActive;
+    private bool isBetweenWaves;
     private bool canSelectItemSpace;
     private int enemyID;
     private int playerPoints;
     private int enemyPoints;
     private int itemSpacesLen;
+    private int enemiesLen;
+    private int playersLen;
+    private int wave;
+    private int miniWave;
+    private int secondsLeft;
+    public enum GameOverCause{FINISHED,FILEDESTROYED,PLAYERSDEAD};
     private System.Random random;
     private Dictionary<int,GameObject> activeEnemies;
     private GameObject[] filesToAttack;
@@ -20,18 +32,25 @@ public class GameManager : MonoBehaviour
     private GameObject[] spawnPoints;
     public enum ItemSpaceItems{BURN,SLOWNESS,GUN,NONE}
     public enum ItemSpaceOwner{PLAYER,ENEMY,NONE};
-    [SerializeField] private GameObject fileContainer;
+    [SerializeField] private GameObject[] players;
     [SerializeField] private GameObject[] enemies;
+    [SerializeField] private GameObject fileContainer;
+    [SerializeField] private GameObject startMenu;
+    [SerializeField] private GameObject gameOverMenu;
     [SerializeField] private TextMeshProUGUI playerPointsText;
     [SerializeField] private TextMeshProUGUI enemyPointsText;
-
-    // private GameObject[] filesToAttack;
+    [SerializeField] private TextMeshProUGUI waveText;
+    [SerializeField] private TextMeshProUGUI countdownTimer;
     // Start is called before the first frame update
     void Start()
     {
         canSelectItemSpace = true;
+        isBetweenWaves = true;
         enemyID = 0;
         playerPoints = 100;
+        wave = 1;
+        enemiesLen = enemies.Length;
+        playersLen = players.Length;
         random = new System.Random();
         activeEnemies = new();
         filesToAttack = new GameObject[fileContainer.transform.childCount];
@@ -47,19 +66,18 @@ public class GameManager : MonoBehaviour
             if (child.CompareTag("SpawnPoint"))
             {
                 spawnPoints[numOfSpawnPoints] = child.gameObject;
-                Instantiate(enemies[0],child.gameObject.transform.position,enemies[0].transform.rotation);
                 numOfSpawnPoints++;
             }
         }
-        // foreach(GameObject spawnPoint in spawnPoints){
-        //     Instantiate(enemies[0],spawnPoint.transform.position,enemies[0].transform.rotation);
-        // }
+        playerPointsText.text = $"<color=yellow>Player Points: {playerPoints}</color>";
+        enemyPointsText.text = $"<color=purple>Enemy Points: {enemyPoints}</color>";
+        waveText.text = $"Wave: {wave}";
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (canSelectItemSpace && enemyPoints >= 20){
+        if (isGameActive && !isBetweenWaves && canSelectItemSpace && enemyPoints >= 20){
             for(int i = 0; i<itemSpacesLen; i++){
                 GameObject chosenItemSpace = itemSpaces[random.Next(itemSpacesLen)];
                 ItemSpaceController itemSpaceScript = chosenItemSpace.GetComponent<ItemSpaceController>();
@@ -78,14 +96,6 @@ public class GameManager : MonoBehaviour
                             itemChoice = itemChoices[random.Next(itemChoices.Length)];
                         }
                         itemSpaceScript.InstantiateItem(itemChoice);
-                        // switch(itemChoice){
-                        //     case ItemSpaceItems.BURN or ItemSpaceItems.SLOWNESS:
-                        //         itemSpaceScript.InstantiateItem(itemChoice);
-                        //         break;
-                        //     case ItemSpaceItems.GUN:
-                        //         itemSpaceScript.InstantiateItem(ItemSpaceItems.GUN);
-                        //         break;
-                        // }
                     }
                     break;
                 }
@@ -105,12 +115,109 @@ public class GameManager : MonoBehaviour
         return playerPoints;
     }
 
+    public bool GetIsGameActive(){
+        return isGameActive;
+    }
+
     public bool GetIsMenuActive(){
         return isMenuActive; 
     }
 
     public GameObject[] GetFilesToAttack(){
-        return GameObject.FindGameObjectsWithTag("File");
+        return filesToAttack;
+    }
+
+    public void StartGame(){
+        isGameActive = true;
+        startMenu.SetActive(false);
+        StartCoroutine(WaveLoop());
+    }
+
+    private void SpawnWave(){
+        int numOfSpawns = 20;
+        int rangeOfEnemies = enemiesLen;
+        switch(wave){
+            case 1:
+                numOfSpawns = 20;
+                rangeOfEnemies = 2;
+                break;
+            case 2:
+                numOfSpawns = 40;
+                rangeOfEnemies = enemiesLen;
+                break;
+            case 3:
+                numOfSpawns = 60;
+                rangeOfEnemies = enemiesLen;
+                break;
+        }
+        int numOfHeavies = 0;
+        int numOfSwords = 0;
+        for(int i = 0; i < numOfSpawns; i++){
+            GameObject selectedSpawnPoint = spawnPoints[i];
+            GameObject selectedEnemy = enemies[random.Next(rangeOfEnemies)];
+            if (selectedEnemy.transform.GetChild(0).CompareTag("Heavy")){
+                if (numOfHeavies != 5){
+                    numOfHeavies++;
+                } else{
+                    selectedEnemy = enemies[random.Next(2)];
+                }
+            } else if (selectedEnemy.transform.GetChild(0).CompareTag("Sword")){
+                if (numOfSwords != 15){
+                    numOfSwords++;
+                } else{
+                    selectedEnemy = enemies[random.Next(2)];
+                }
+            }
+            selectedSpawnPoint.GetComponent<ParticleSystem>().Play();
+            Instantiate(selectedEnemy,selectedSpawnPoint.transform.position,selectedEnemy.transform.rotation);
+        }
+    }
+
+    public void GameOver(GameOverCause gameOverCause){
+        isGameActive = false;
+        StopAllCoroutines();
+        gameOverMenu.SetActive(true);
+        switch(gameOverCause){
+            case GameOverCause.FINISHED:
+                gameOverMenu.transform.GetChild(0).GetChild(0).gameObject.GetComponent<TextMeshProUGUI>().text = "Files defended! Congratulations!";
+                foreach(GameObject player in players){
+                    if(!player.IsDestroyed()){
+                        if (!player.GetComponent<PlayerController>().GetIsDead()){
+                            player.GetComponent<PlayerController>().GameOverProcedure();
+                        }
+                    }
+                }
+                break;
+            case GameOverCause.FILEDESTROYED:
+                gameOverMenu.transform.GetChild(0).GetChild(0).gameObject.GetComponent<TextMeshProUGUI>().text = "Files breached! The virus wins...";
+                foreach(GameObject player in players){
+                    if(!player.IsDestroyed()){
+                        if(!player.GetComponent<PlayerController>().GetIsDead()){
+                            player.GetComponent<PlayerController>().GameOverProcedure();
+                        }
+                    }
+                }
+                foreach(KeyValuePair<int,GameObject> enemy in activeEnemies){
+                    GameObject enemyObject = enemy.Value;
+                    if(!enemyObject.IsDestroyed()){
+                        if(!enemyObject.GetComponent<EnemyController>().GetIsDead()){
+                            enemyObject.GetComponent<EnemyController>().GameOverProcedure();
+                        }
+                    }
+                }
+                break;
+            case GameOverCause.PLAYERSDEAD:
+                gameOverMenu.transform.GetChild(0).GetChild(0).gameObject.GetComponent<TextMeshProUGUI>().text = "Anti-virus down! The virus wins...";
+                foreach(KeyValuePair<int,GameObject> enemy in activeEnemies){
+                    GameObject enemyObject = enemy.Value;
+                    if(!enemyObject.IsDestroyed()){
+                        if(!enemyObject.GetComponent<EnemyController>().GetIsDead()){
+                            enemyObject.GetComponent<EnemyController>().GameOverProcedure();
+                        }
+                    }
+                }
+                break;
+        }
     }
 
     public void AddToActiveEnemies(int enemyID, GameObject enemy){
@@ -119,8 +226,38 @@ public class GameManager : MonoBehaviour
 
     public void RemoveFromActiveEnemies(int enemyID){
         activeEnemies.Remove(enemyID);
+        if (activeEnemies.Count <= 0){
+            switch(miniWave){
+                case 1:
+                    secondsLeft = 0;
+                    break;
+                case 2:
+                    switch(wave){
+                        case 3:
+                            GameOver(GameOverCause.FINISHED);
+                            break;
+                        default:
+                            wave++;
+                            waveText.text = $"Wave: {wave}";
+                            StartCoroutine(WaveLoop());
+                            break;
+                    }
+                    break;
+            }
+        }
     }
 
+    public void CheckIfAllPlayersAreDead(){
+        int numOfDeadPlayers = 0;
+        for(int i = 0; i < playersLen; i++){
+            if(players[i].IsDestroyed() || players[i].GetComponent<PlayerController>().GetIsDead()){
+                numOfDeadPlayers++;
+            }
+        }
+        if (numOfDeadPlayers == playersLen){
+            GameOver(GameOverCause.PLAYERSDEAD);
+        }
+    }
     public void SetIsMenuActive(bool isMenuActive){
         this.isMenuActive = isMenuActive;
     }
@@ -144,9 +281,39 @@ public class GameManager : MonoBehaviour
         enemyPointsText.text = $"<color=purple>Enemy Points: {enemyPoints}</color>";
     }
 
+    public void ResetGame(){
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
     IEnumerator WaitForItemSpaceSelection(){
         yield return new WaitForSeconds(10);
         canSelectItemSpace = true;
+    }
+
+    IEnumerator WaveLoop(){
+        isBetweenWaves = true;
+        miniWave = 1;
+        secondsLeft = 15;
+        countdownTimer.transform.parent.gameObject.SetActive(true);
+        for(int i = 0; i<15; i++){
+            countdownTimer.text = $"Time Left: {secondsLeft}";
+            secondsLeft--;
+            yield return new WaitForSeconds(1);
+        }
+        SpawnWave();
+        isBetweenWaves = false;
+        secondsLeft = 80;
+        for(int i = 0; i<80; i++){
+            countdownTimer.text = $"Time Left: {secondsLeft}";
+            secondsLeft--;
+            yield return new WaitForSeconds(1);
+            if (secondsLeft <= 0){
+                countdownTimer.transform.parent.gameObject.SetActive(false);
+                break;
+            }
+        }
+        miniWave++;
+        SpawnWave();
     }
 
 

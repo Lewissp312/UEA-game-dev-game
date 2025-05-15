@@ -80,7 +80,7 @@ public class EnemyController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (!isDead){
+        if (gameManager.GetIsGameActive() && !isDead){
             if (isMovingToObject){
                 switch(objectType){
                     case ObjectType.FILE:
@@ -127,7 +127,7 @@ public class EnemyController : MonoBehaviour
                         }
                         break;
                     case ObjectType.PLAYER:
-                        if (objectToMoveTo.IsDestroyed() || playerScript.GetIsDead()){
+                        if (objectToMoveTo.IsDestroyed() || objectToMoveTo.GetComponent<PlayerController>().GetIsDead()){
                             anim.ResetTrigger("Run_trig");
                             enemyAgent.ResetPath();
                             isMovingToObject = false;
@@ -400,6 +400,13 @@ public class EnemyController : MonoBehaviour
                 break;
         }
         StartCoroutine(WaitForDeath());
+    }
+
+    public void GameOverProcedure(){
+        StopAllCoroutines();
+        enemyAgent.ResetPath();
+        anim.ResetTrigger(attackAnimationName);
+        anim.ResetTrigger("Run_trig");
     }
 
     IEnumerator AttackCooldown(){

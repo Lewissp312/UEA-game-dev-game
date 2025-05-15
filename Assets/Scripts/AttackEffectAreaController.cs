@@ -49,23 +49,27 @@ public class AttackEffectAreaController : MonoBehaviour
             switch(itemSpaceScript.GetItemSpaceOwner()){
                 case GameManager.ItemSpaceOwner.PLAYER:
                     foreach(Collider collider in overlaps){
-                        EnemyController enemyScript = collider.gameObject.GetComponent<EnemyController>();
-                        if (!collider.gameObject.IsDestroyed() && !enemyScript.GetIsDead()){
-                            ParticleSystem damageEffectCopy = Instantiate(burnEffect,collider.gameObject.transform.position,transform.rotation);
-                            damageEffectCopy.Play();
-                            Destroy(damageEffectCopy.gameObject,damageEffectCopy.main.duration);
-                            enemyScript.DecreaseHealth(5);
+                        // EnemyController enemyScript = collider.gameObject.GetComponent<EnemyController>();
+                        if (!collider.gameObject.IsDestroyed()){
+                            if (!collider.gameObject.GetComponent<EnemyController>().GetIsDead()){
+                                ParticleSystem damageEffectCopy = Instantiate(burnEffect,collider.gameObject.transform.position,transform.rotation);
+                                damageEffectCopy.Play();
+                                Destroy(damageEffectCopy.gameObject,damageEffectCopy.main.duration);
+                                collider.gameObject.GetComponent<EnemyController>().DecreaseHealth(8);
+                            }
                         }
                     }
                     break;
                 case GameManager.ItemSpaceOwner.ENEMY:
                     foreach(Collider collider in overlaps){
-                        PlayerController playerScript = collider.gameObject.GetComponent<PlayerController>();
-                        if (!collider.gameObject.IsDestroyed() && !playerScript.GetIsDead()){
-                            ParticleSystem damageEffectCopy = Instantiate(burnEffect,collider.gameObject.transform.position,transform.rotation);
-                            damageEffectCopy.Play();
-                            Destroy(damageEffectCopy.gameObject,damageEffectCopy.main.duration);
-                            playerScript.DecreaseHealth(5);
+                        // PlayerController playerScript = collider.gameObject.GetComponent<PlayerController>();
+                        if (!collider.gameObject.IsDestroyed()){
+                            if (collider.gameObject.GetComponent<PlayerController>().GetIsDead()){
+                                ParticleSystem damageEffectCopy = Instantiate(burnEffect,collider.gameObject.transform.position,transform.rotation);
+                                damageEffectCopy.Play();
+                                Destroy(damageEffectCopy.gameObject,damageEffectCopy.main.duration);
+                                collider.gameObject.GetComponent<PlayerController>().DecreaseHealth(8);
+                            }
                         }
                     }
                     break;
