@@ -262,12 +262,12 @@ public class EnemyController : MonoBehaviour
 /// </summary>
     public void DeathProcedure(){
         isDead = true;
-        objectToMoveTo.transform.parent.gameObject.GetComponent<FileController>().MakePointAvailable(pointNum);
-        // if(objectToMoveTo.CompareTag("Point")){
-        //     objectToMoveTo.transform.parent.gameObject.GetComponent<FileController>().MakePointAvailable(pointNum);
-        // } else if(objectToMoveTo.CompareTag("File")){
-        //     objectToMoveTo.GetComponent<FileController>().MakePointAvailable(pointNum);
-        // }
+        // objectToMoveTo.transform.parent.gameObject.GetComponent<FileController>().MakePointAvailable(pointNum);
+        if(objectToMoveTo.CompareTag("Point")){
+            objectToMoveTo.transform.parent.gameObject.GetComponent<FileController>().MakePointAvailable(pointNum);
+        } else if(objectToMoveTo.CompareTag("File")){
+            objectToMoveTo.GetComponent<FileController>().MakePointAvailable(pointNum);
+        }
         gameManager.RemoveFromActiveEnemies(enemyID);
         enemyAgent.ResetPath();
         anim.ResetTrigger(attackAnimationName);
